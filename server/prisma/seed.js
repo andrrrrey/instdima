@@ -1,7 +1,7 @@
 // Сидирование: пользователи из ALLOWLIST, источники дайджеста из DIGEST_SOURCES.
 // Идемпотентно — можно запускать повторно.
 import { PrismaClient } from '@prisma/client';
-import { config, parseAllowlist, parseDigestSources } from '../src/config.js';
+import { config, parseAllowlist, parseDigestSources, parseSuperadminIds } from '../src/config.js';
 import { initialsFrom, colorFor } from '../src/util/format.js';
 
 const prisma = new PrismaClient();
@@ -44,6 +44,28 @@ async function seedUsers() {
   }
 }
 
+async function seedSuperadmins() {
+  const ids = parseSuperadminIds();
+  for (const id of ids) {
+    const telegramId = BigInt(id);
+    const existing = await prisma.user.findUnique({ where: { telegramId } });
+    if (existing) {
+      await prisma.user.update({ where: { telegramId }, data: { superadmin: true, active: true } });
+      console.log(`[seed] ${id} отмечен суперадмином.`);
+    } else {
+      const name = `Суперадмин ${id}`;
+      await prisma.user.create({
+        data: {
+          telegramId, name, initials: initialsFrom(name), color: colorFor(name),
+          role: 'owner', rights: { createPub: true, seeAll: true, createTask: true },
+          active: true, superadmin: true,
+        },
+      });
+      console.log(`[seed] создан суперадмин ${id}.`);
+    }
+  }
+}
+
 async function seedSources() {
   const sources = parseDigestSources();
   for (const s of sources) {
@@ -58,6 +80,7 @@ async function seedSources() {
 
 async function main() {
   await seedUsers();
+  await seedSuperadmins();
   await seedSources();
   console.log('[seed] готово.');
 }

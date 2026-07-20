@@ -547,9 +547,11 @@ select{appearance:none;cursor:pointer}
 /* ============ API / авторизация ============ */
 const API={
   token:null,
+  viewAs:null, // суперадмин: «просмотр от имени» пользователя (X-View-As)
   async req(method,path,body,isForm){
     const h={};
     if(this.token)h.authorization="Bearer "+this.token;
+    if(this.viewAs)h["x-view-as"]=this.viewAs;
     let payload;
     if(isForm){payload=body;}
     else if(body!==undefined){h["content-type"]="application/json";payload=JSON.stringify(body);}
@@ -620,6 +622,47 @@ function accessDenied(msg){
     </div>`;
 }
 
+let IS_SUPER=false,REAL_UID=null;
+const VIEWAS_KEY="cp_viewas_v1";
+
+// Применяет профиль/роль/права из ответа /api/bootstrap.
+function applyIdentity(b){
+  Object.assign(PEOPLE,b.people||{});
+  TEAM=b.team||[];
+  ME_ID=b.user.id;CAPS=b.caps||{};
+  rights=b.user.rights||{createPub:false,seeAll:false,createTask:false};
+  role=SRV2ROLE[b.user.role]||"eva";
+  IS_SUPER=!!b.superadmin;REAL_UID=b.realUserId||b.user.id;
+  ROLES[role].who=ME_ID;ROLES[role].name=b.user.name;
+  PEOPLE[ME_ID]=PEOPLE[ME_ID]||{n:b.user.name,i:b.user.initials,c:b.user.color};
+}
+async function loadAllData(){
+  await Promise.all([reloadPubs(),reloadIdeas(),reloadDigest()]);
+}
+function rerenderApp(){
+  nav=ROLES[role].nav.includes(nav)?nav:ROLES[role].nav[0];
+  planTab=planTabsFor()[0];
+  ideaTab="new";
+  renderRole();buildNav();goNav(nav);
+}
+// Переключатель «просмотр от имени» — только для суперадмина.
+function setupSwitcher(){
+  const rb=$("#roleBtn");
+  if(!IS_SUPER){if(rb)rb.style.pointerEvents="none";return;}
+  if(rb)rb.style.pointerEvents="";
+  buildRoleMenu();
+}
+async function switchViewAs(uid){
+  API.viewAs=(uid===REAL_UID)?null:uid;
+  if(API.viewAs)localStorage.setItem(VIEWAS_KEY,API.viewAs);else localStorage.removeItem(VIEWAS_KEY);
+  $("#roleMenu").classList.remove("open");
+  let b;
+  try{b=await API.get("/api/bootstrap");}catch(e){toast("Не удалось переключиться");return;}
+  applyIdentity(b);
+  await loadAllData();
+  rerenderApp();buildRoleMenu();
+  toast("Просмотр от имени: "+b.user.name);
+}
 async function boot(){
   const TG=window.Telegram&&window.Telegram.WebApp;
   if(TG){try{TG.ready();TG.expand();}catch(e){}}
@@ -633,17 +676,12 @@ async function boot(){
     return;
   }
   API.token=auth.token;
+  API.viewAs=localStorage.getItem(VIEWAS_KEY)||null; // сервер игнорирует для не-суперадмина
   let b;
   try{b=await API.get("/api/bootstrap");}catch(e){accessDenied();return;}
-  Object.assign(PEOPLE,b.people);
-  TEAM=b.team||[];ME_ID=b.user.id;CAPS=b.caps||{};
-  rights=b.user.rights||rights;
-  role=SRV2ROLE[b.user.role]||"eva";
-  ROLES[role].who=ME_ID;ROLES[role].name=b.user.name;
-  PEOPLE[ME_ID]=PEOPLE[ME_ID]||{n:b.user.name,i:b.user.initials,c:b.user.color};
-  await Promise.all([reloadPubs(),reloadIdeas(),reloadDigest()]);
-  // Роль задаётся авторизацией — демо-переключатель ролей отключаем.
-  const rb=$("#roleBtn");if(rb)rb.style.pointerEvents="none";
+  applyIdentity(b);
+  await loadAllData();
+  setupSwitcher();
   nav=ROLES[role].nav[0];
   planTab=planTabsFor()[0];
   ideaTab="new";
@@ -859,16 +897,20 @@ function renderRole(){
   $("#moreAva").textContent=P.i;$("#moreAva").style.background=P.c;
   $("#moreName").textContent=R.name;$("#moreRole").textContent=R.role;
 }
+// Меню суперадмина: список участников для «просмотра от имени».
 function buildRoleMenu(){
   const m=$("#roleMenu");
+  const lbl=m.querySelector(".rl");if(lbl)lbl.textContent="ПРОСМОТР ОТ ИМЕНИ (СУПЕРАДМИН)";
   m.querySelectorAll("button").forEach(b=>b.remove());
-  Object.keys(ROLES).forEach(k=>{
-    const R=ROLES[k],P=PEOPLE[R.who];
+  TEAM.forEach(u=>{
+    const fr=SRV2ROLE[u.role]||"eva";
+    const P=PEOPLE[u.id]||{i:u.initials,c:u.color,n:u.name};
     const b=document.createElement("button");
-    if(k===role)b.classList.add("on");
-    b.innerHTML=`<span class="ra" style="background:${P.c}">${P.i}</span>
-      <span class="rt"><b>${R.name}</b><span>${R.role}</span></span>`;
-    b.addEventListener("click",e=>{e.stopPropagation();switchRole(k);m.classList.remove("open");});
+    if(u.id===ME_ID)b.classList.add("on");
+    const mark=u.id===REAL_UID?" · вы":"";
+    b.innerHTML=`<span class="ra" style="background:${P.c}">${esc(P.i)}</span>
+      <span class="rt"><b>${esc(u.name)}${mark}</b><span>${ROLES[fr]?ROLES[fr].role:esc(u.role)}</span></span>`;
+    b.addEventListener("click",e=>{e.stopPropagation();switchViewAs(u.id);});
     m.appendChild(b);
   });
 }

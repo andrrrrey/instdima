@@ -25,7 +25,9 @@ function bearer(req) {
   return m ? m[1] : null;
 }
 
-// Fastify-хук: проверяет JWT, грузит активного пользователя в req.user.
+// Fastify-хук: проверяет JWT, грузит активного пользователя.
+// req.realUser — реальный вошедший пользователь;
+// req.user — «эффективный» (для суперадмина может быть выбранным через X-View-As).
 export async function authGuard(req, reply) {
   const token = bearer(req);
   if (!token) return reply.code(401).send({ error: 'unauthorized' });
@@ -34,7 +36,21 @@ export async function authGuard(req, reply) {
 
   const user = await prisma.user.findUnique({ where: { id: payload.uid } });
   if (!user || !user.active) return reply.code(403).send({ error: 'forbidden' });
+
+  req.realUser = user;
   req.user = user;
+
+  // Суперадмин может «смотреть от имени» другого пользователя.
+  if (user.superadmin) {
+    const viewAs = req.headers['x-view-as'];
+    if (viewAs && viewAs !== user.id) {
+      const target = await prisma.user.findUnique({ where: { id: String(viewAs) } });
+      if (target && target.active) {
+        req.user = target;
+        req.impersonating = true;
+      }
+    }
+  }
 }
 
 // Ограничение по ролям: roleGuard('owner') или roleGuard('owner','maker')

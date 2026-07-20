@@ -20,6 +20,7 @@ export function serializeUserPublic(u) {
     role: u.role,
     rights: u.rights || {},
     active: u.active,
+    superadmin: !!u.superadmin,
   };
 }
 

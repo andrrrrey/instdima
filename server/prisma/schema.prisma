@@ -62,6 +62,8 @@ model User {
   // права контент-мейкера: { createPub, seeAll, createTask }
   rights     Json     @default("{\"createPub\":false,\"seeAll\":false,\"createTask\":false}")
   active     Boolean  @default(true)
+  // суперадмин: полный доступ + «просмотр от имени» любой роли
+  superadmin Boolean  @default(false)
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 

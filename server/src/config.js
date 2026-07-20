@@ -50,6 +50,10 @@ export const config = {
   // Стартовый allow-list: "123456:owner:Ева, 234567:maker:Кира, 345678:customer:Дмитрий"
   allowlist: req('ALLOWLIST', ''),
 
+  // Суперадмины: список Telegram ID через запятую. Заходят всегда с полным
+  // доступом и могут «смотреть от имени» любой роли/пользователя.
+  superadminIds: req('SUPERADMIN_IDS', ''),
+
   database: {
     url: req('DATABASE_URL', ''),
   },
@@ -111,6 +115,13 @@ export function parseAllowlist(raw = config.allowlist) {
       };
     })
     .filter((e) => e.telegramId && /^\d+$/.test(e.telegramId));
+}
+
+export function parseSuperadminIds(raw = config.superadminIds) {
+  return String(raw)
+    .split(/[\n,\s]+/)
+    .map((s) => s.trim())
+    .filter((s) => /^\d+$/.test(s));
 }
 
 export function parseDigestSources(raw = config.digest.sources) {
