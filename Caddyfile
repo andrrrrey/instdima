@@ -1,0 +1,10 @@
+# Замените your-domain.example.com на ваш домен.
+# Caddy сам получит и продлит TLS-сертификат Let's Encrypt.
+your-domain.example.com {
+	encode gzip
+	# Большие видео Reels
+	request_body {
+		max_size 200MB
+	}
+	reverse_proxy app:3000
+}
