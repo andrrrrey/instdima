@@ -35,7 +35,7 @@
   --safe-b:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;overflow-x:hidden}
 body{font-family:'Onest',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   background:#E9E9EF;color:var(--ink);-webkit-font-smoothing:antialiased;
   display:flex;justify-content:center;min-height:100dvh}
@@ -226,7 +226,7 @@ body{font-family:'Onest',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
 .sheet__head .hint2{font-size:11.5px;font-weight:600;color:var(--ink-3);margin-top:2px}
 .sheet__x{width:34px;height:34px;border-radius:50%;border:0;background:var(--soft);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 .sheet__x .i{width:18px;height:18px}
-.sheet__body{padding:4px 18px 8px;overflow-y:auto}
+.sheet__body{padding:4px 18px 8px;overflow-y:auto;overflow-x:hidden}
 .sheet__foot{padding:12px 18px calc(18px + var(--safe-b));border-top:1px solid var(--line);display:flex;gap:9px}
 .btn-primary{flex:1;border:0;border-radius:17px;padding:15px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;background:var(--dark);color:#fff;letter-spacing:-.01em}
 .btn-primary:disabled{opacity:.4}
@@ -245,8 +245,8 @@ body{font-family:'Onest',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
 .seg button[data-type=post].on{background:var(--c-post)}
 .seg button[data-type=reels].on{background:var(--c-reels)}
 .seg button.on .si{background:rgba(255,255,255,.6)}
-.row2{display:grid;grid-template-columns:1.35fr 1fr;gap:12px}
-input[type=text],input[type=date],input[type=time],textarea,select{width:100%;border:1.5px solid var(--line);background:var(--bg);
+.row2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:12px}
+input[type=text],input[type=date],input[type=time],textarea,select{width:100%;min-width:0;max-width:100%;border:1.5px solid var(--line);background:var(--bg);
   border-radius:15px;padding:13px 14px;font-size:15px;font-family:inherit;font-weight:500;color:var(--ink)}
 input:focus,textarea:focus,select:focus{outline:none;border-color:var(--ink)}
 textarea{resize:vertical;min-height:78px;line-height:1.45}
@@ -433,7 +433,7 @@ select{appearance:none;cursor:pointer}
     </button>
     <div class="hi">
       <h1 id="viewTitle">Контент-план</h1>
-      <span id="whoLabel">Ева · Владелец</span>
+      <span id="whoLabel">Ева · Медиа ассистент</span>
     </div>
     <button class="circle-btn" id="searchBtn" aria-label="Поиск">
       <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16.5 16.5 21 21"/></svg>
@@ -485,7 +485,7 @@ select{appearance:none;cursor:pointer}
     <section class="view" id="view-more">
       <div class="acct">
         <span class="ava" id="moreAva">ЕВ</span>
-        <span class="m"><b id="moreName">Ева</b><span id="moreRole">Владелец</span></span>
+        <span class="m"><b id="moreName">Ева</b><span id="moreRole">Медиа ассистент</span></span>
       </div>
       <div id="moreBody"></div>
     </section>
@@ -739,9 +739,9 @@ const PEOPLE={
   fashion:{n:"Fashion",i:"FR",c:"#A08C96"}
 };
 const ROLES={
-  eva:{name:"Ева",role:"Владелец",who:"eva",nav:["plan","ideas","news","more"]},
+  eva:{name:"Ева",role:"Медиа ассистент",who:"eva",nav:["plan","ideas","news","more"]},
   maker:{name:"Кира",role:"Контент-мейкер",who:"kira",nav:["plan","ideas","news","more"]},
-  dmitry:{name:"Дмитрий",role:"Заказчик · просмотр",who:"dmitry",nav:["plan","ideas","news","more"]},
+  dmitry:{name:"Дмитрий",role:"Владелец",who:"dmitry",nav:["plan","ideas","news","more"]},
   fashion:{name:"Fashion-ресёрчер",role:"Только идеи · в будущем",who:"fashion",nav:["ideas","more"],future:true}
 };
 const NAVL={plan:"План",ideas:"Идеи",news:"Новости",more:"Ещё"};
@@ -1934,7 +1934,7 @@ function sheet2Simple(title,hint,html){
   $("#sheet2Title").textContent=title;$("#sheet2Hint").textContent=hint||"";
   $("#sheet2Foot").style.display="none";$("#sheet2Body").innerHTML=html;openSheet2();
 }
-const ROLE_LABEL={owner:"Владелец",maker:"Контент-мейкер",customer:"Заказчик",fashion:"Fashion-ресёрчер"};
+const ROLE_LABEL={owner:"Медиа ассистент",maker:"Контент-мейкер",customer:"Владелец",fashion:"Fashion-ресёрчер"};
 // Права каждого контент-мейкера (управляет владелец) — сохраняются через API.
 function rightsSheet(){
   const makers=TEAM.filter(u=>u.role==="maker");
@@ -1981,8 +1981,8 @@ function teamSheet(){
      <div class="field"><label>TELEGRAM ID</label><input type="text" id="nuId" inputmode="numeric" placeholder="напр. 123456789"></div>
      <div class="field"><label>ИМЯ</label><input type="text" id="nuName" placeholder="Имя участника"></div>
      <div class="field"><label>РОЛЬ</label><select id="nuRole">
-       <option value="maker">Контент-мейкер</option><option value="owner">Владелец</option>
-       <option value="customer">Заказчик</option><option value="fashion">Fashion-ресёрчер</option></select></div>
+       <option value="maker">Контент-мейкер</option><option value="owner">Медиа ассистент</option>
+       <option value="customer">Владелец</option><option value="fashion">Fashion-ресёрчер</option></select></div>
      <button class="btn-primary" id="nuAdd" style="width:100%">Добавить</button>`);
   $("#nuAdd").addEventListener("click",async()=>{
     const id=$("#nuId").value.trim(),name=$("#nuName").value.trim(),r=$("#nuRole").value;
