@@ -1,0 +1,11 @@
+# Домен проекта. Caddy сам получит и будет автоматически продлевать
+# TLS-сертификат Let's Encrypt для обоих имён (нужны открытые порты 80/443
+# и A-записи instdima.ru / www.instdima.ru → IP сервера).
+instdima.ru, www.instdima.ru {
+	encode gzip
+	# Большие видео Reels
+	request_body {
+		max_size 200MB
+	}
+	reverse_proxy app:3000
+}

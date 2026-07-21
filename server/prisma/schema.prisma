@@ -1,0 +1,231 @@
+// Prisma schema — Telegram Mini App «Контент-план» (Этап 1)
+// Поля подобраны так, чтобы сериализаторы отдавали объекты в форме,
+// которую уже рендерит фронтенд (public/index.html).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  owner // Ева — владелец
+  maker // контент-мейкер
+  customer // Дмитрий — заказчик, просмотр
+  fashion // fashion-ресёрчер (только идеи) — на будущее
+}
+
+enum PubType {
+  post
+  reels
+}
+
+enum PubStatus {
+  draft
+  work
+  review
+  fixes
+  ready
+  published
+  canceled
+}
+
+enum IdeaState {
+  new
+  saved
+  work
+  used
+  archived
+}
+
+enum IdeaStatus {
+  processing
+  ready
+  error
+}
+
+enum MediaKind {
+  image
+  video
+}
+
+model User {
+  id         String   @id @default(cuid())
+  telegramId BigInt   @unique @map("telegram_id")
+  name       String
+  initials   String   @default("")
+  color      String   @default("#8E9199")
+  role       Role     @default(maker)
+  // права контент-мейкера: { createPub, seeAll, createTask }
+  rights     Json     @default("{\"createPub\":false,\"seeAll\":false,\"createTask\":false}")
+  active     Boolean  @default(true)
+  // суперадмин: полный доступ + «просмотр от имени» любой роли
+  superadmin Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  ownedPubs   Publication[]        @relation("PubOwner")
+  comments    PublicationComment[]
+  history     PublicationHistory[]
+  digestReads DigestRead[]
+
+  @@map("users")
+}
+
+model Media {
+  id        String    @id @default(cuid())
+  kind      MediaKind
+  // относительный путь на диске (STORAGE_DRIVER=disk) или ключ в S3
+  path      String
+  mime      String    @default("application/octet-stream")
+  size      Int       @default(0)
+  framePath String?   @map("frame_path") // кадр, извлечённый из видео (для vision)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  publications Publication[]
+  ideas        Idea[]
+
+  @@map("media")
+}
+
+model Publication {
+  id        String    @id @default(cuid())
+  title     String    @default("")
+  type      PubType   @default(post)
+  date      String // дата выхода, YYYY-MM-DD
+  time      String    @default("12:00")
+  deadline  String? // дедлайн подготовки, YYYY-MM-DD (отдельно от даты выхода)
+  status    PubStatus @default(draft)
+  owner     User?     @relation("PubOwner", fields: [ownerId], references: [id])
+  ownerId   String?   @map("owner_id")
+  g         Int       @default(0) // индекс градиента-заглушки для карточек без медиа
+  dur       String? // длительность Reels, напр. "0:21"
+  text      String    @default("")
+  alt       String    @default("")
+  tags      Json      @default("[]")
+  track     String    @default("")
+  trackAt   String    @default("") @map("track_at")
+  media     Media?    @relation(fields: [mediaId], references: [id])
+  mediaId   String?   @map("media_id")
+  late      Boolean   @default(false) // опубликовано с просрочкой
+  archived  Boolean   @default(false)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  comments PublicationComment[]
+  history  PublicationHistory[]
+
+  @@index([date])
+  @@index([status])
+  @@map("publications")
+}
+
+model PublicationComment {
+  id            String      @id @default(cuid())
+  publication   Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  publicationId String      @map("pub_id")
+  author        User?       @relation(fields: [authorId], references: [id])
+  authorId      String?     @map("author_id")
+  text          String
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  @@index([publicationId])
+  @@map("publication_comments")
+}
+
+model PublicationHistory {
+  id            String      @id @default(cuid())
+  publication   Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  publicationId String      @map("pub_id")
+  actor         User?       @relation(fields: [actorId], references: [id])
+  actorId       String?     @map("actor_id")
+  text          String
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  @@index([publicationId])
+  @@map("publication_history")
+}
+
+model Idea {
+  id        String     @id @default(cuid())
+  type      PubType    @default(post)
+  g         Int        @default(0)
+  dur       String?
+  state     IdeaState  @default(new)
+  status    IdeaStatus @default(processing)
+  tags      Json       @default("[]")
+  title     String     @default("")
+  note      String     @default("")
+  ai        String     @default("") // описание сцены от Claude (vision)
+  text      String     @default("") // описание/подпись публикации
+  hashtags  Json       @default("[]")
+  author    String     @default("")
+  url       String
+  media     Media?     @relation(fields: [mediaId], references: [id])
+  mediaId   String?    @map("media_id")
+  error     String? // текст ошибки, если status=error
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@index([state])
+  @@map("ideas")
+}
+
+model Digest {
+  id          String       @id @default(cuid())
+  rangeLabel  String       @map("range_label") // напр. "14–20 июля"
+  summary     String       @default("")
+  publishedAt DateTime     @default(now()) @map("published_at")
+  items       DigestItem[]
+
+  @@map("digests")
+}
+
+model DigestItem {
+  id       String       @id @default(cuid())
+  digest   Digest       @relation(fields: [digestId], references: [id], onDelete: Cascade)
+  digestId String       @map("digest_id")
+  cat      String       @default("Новые функции")
+  t        String // заголовок
+  ch       String       @default("") // что изменилось
+  me       String       @default("") // что это значит
+  co       String       @default("") // что учитывать в контенте
+  src      String       @default("")
+  d        String       @default("") // дата, человекочитаемо
+  reads    DigestRead[]
+
+  @@index([digestId])
+  @@map("digest_items")
+}
+
+model DigestRead {
+  id     String     @id @default(cuid())
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String     @map("user_id")
+  item   DigestItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId String     @map("item_id")
+
+  @@unique([userId, itemId])
+  @@map("digest_reads")
+}
+
+model DigestSource {
+  id        String   @id @default(cuid())
+  url       String
+  type      String   @default("rss") // rss | html
+  title     String   @default("")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("digest_sources")
+}
+
+model Setting {
+  key   String @id
+  value Json
+
+  @@map("settings")
+}

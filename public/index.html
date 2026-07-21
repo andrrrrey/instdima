@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#FFFFFF" />
 <title>Контент-план · Telegram Mini App</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 @font-face{font-family:'Onest';font-style:normal;font-weight:400;font-display:swap;src:url(data:font/woff2;base64,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) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
 @font-face{font-family:'Onest';font-style:normal;font-weight:400;font-display:swap;src:url(data:font/woff2;base64,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) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;}
@@ -543,6 +544,150 @@ select{appearance:none;cursor:pointer}
 (function(){
 "use strict";
 
+/* ============ API / авторизация ============ */
+const API={
+  token:null,
+  viewAs:null, // суперадмин: «просмотр от имени» пользователя (X-View-As)
+  async req(method,path,body,isForm){
+    const h={};
+    if(this.token)h.authorization="Bearer "+this.token;
+    if(this.viewAs)h["x-view-as"]=this.viewAs;
+    let payload;
+    if(isForm){payload=body;}
+    else if(body!==undefined){h["content-type"]="application/json";payload=JSON.stringify(body);}
+    const r=await fetch(path,{method,headers:h,body:payload});
+    if(!r.ok){let e;try{e=await r.json();}catch(_){e={error:r.status};}const err=new Error(e.error||("http_"+r.status));err.status=r.status;err.data=e;throw err;}
+    const ct=r.headers.get("content-type")||"";
+    return ct.includes("application/json")?r.json():r;
+  },
+  get(p){return this.req("GET",p);},
+  post(p,b){return this.req("POST",p,b===undefined?{}:b);},
+  patch(p,b){return this.req("PATCH",p,b);},
+  del(p){return this.req("DELETE",p);},
+  form(p,fd){return this.req("POST",p,fd,true);}
+};
+const SRV2ROLE={owner:"eva",maker:"maker",customer:"dmitry",fashion:"fashion"};
+let ME_ID=null,TEAM=[],CAPS={};
+function qparam(n){try{return new URLSearchParams(location.search).get(n);}catch(e){return null;}}
+
+/* Опции ответственного из реальной команды (владелец/мейкеры). */
+function ownerOptions(sel){
+  const list=TEAM.filter(u=>u.role==="owner"||u.role==="maker");
+  return list.map(u=>`<option value="${esc(u.id)}" ${u.id===sel?"selected":""}>${esc(u.name)}</option>`).join("");
+}
+
+/* Замена одной публикации в кэше pubs + синхронизация открытой карточки cur. */
+function replacePub(r){
+  const i=pubs.findIndex(p=>p.id===r.id);
+  let target=r;
+  if(typeof cur!=="undefined"&&cur&&cur.id===r.id){Object.assign(cur,r);target=cur;}
+  if(i>=0)pubs[i]=target;else pubs.push(target);
+  return target;
+}
+function refreshView(){
+  if(nav==="plan")renderPlan();
+  else if(nav==="ideas")renderIdeas();
+  else if(nav==="news")renderNews();
+}
+async function apiStatus(p,st){
+  try{const r=await API.post("/api/publications/"+p.id+"/status",{status:st});replacePub(r);refreshView();}
+  catch(e){toast("Не удалось изменить статус");await reloadPubs();refreshView();}
+}
+async function persistPub(p,patch){
+  try{const r=await API.patch("/api/publications/"+p.id,patch);replacePub(r);refreshView();}
+  catch(e){toast("Не удалось сохранить");await reloadPubs();refreshView();}
+}
+async function reloadPubs(){try{pubs=(await API.get("/api/publications")).items;}catch(e){}}
+async function reloadIdeas(){try{ideas=(await API.get("/api/ideas")).items;}catch(e){}}
+async function reloadDigest(){
+  try{
+    const cur=await API.get("/api/digest/current");
+    if(cur.digest){
+      NEWS=cur.digest.items||[];
+      DG.range=cur.digest.range||"—";
+      DG.summary=cur.digest.summary||"";
+      DG.meta=NEWS.length+" обновлений · собрано Claude";
+      newsRead=NEWS.filter(n=>n.read).map(n=>n.id);
+    }else{NEWS=[];DG.range="—";DG.summary="Дайджест ещё не собран.";DG.meta="—";newsRead=[];}
+  }catch(e){}
+  try{const a=await API.get("/api/digest/archive");ARCH=(a.items||[]).map(d=>[d.range,d.count+" тем"]);}catch(e){ARCH=[];}
+}
+
+function accessDenied(msg){
+  document.getElementById("app").innerHTML=
+    `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:32px;text-align:center;gap:12px">
+      <div style="font-size:40px">🔒</div>
+      <h2 style="margin:0;font-size:18px">Доступ ограничен</h2>
+      <p style="color:#666;font-size:14px;max-width:280px;margin:0">${esc(msg||"Обратитесь к владельцу контент-плана, чтобы вас добавили в список пользователей.")}</p>
+    </div>`;
+}
+
+let IS_SUPER=false,REAL_UID=null;
+const VIEWAS_KEY="cp_viewas_v1";
+
+// Применяет профиль/роль/права из ответа /api/bootstrap.
+function applyIdentity(b){
+  Object.assign(PEOPLE,b.people||{});
+  TEAM=b.team||[];
+  ME_ID=b.user.id;CAPS=b.caps||{};
+  rights=b.user.rights||{createPub:false,seeAll:false,createTask:false};
+  role=SRV2ROLE[b.user.role]||"eva";
+  IS_SUPER=!!b.superadmin;REAL_UID=b.realUserId||b.user.id;
+  ROLES[role].who=ME_ID;ROLES[role].name=b.user.name;
+  PEOPLE[ME_ID]=PEOPLE[ME_ID]||{n:b.user.name,i:b.user.initials,c:b.user.color};
+}
+async function loadAllData(){
+  await Promise.all([reloadPubs(),reloadIdeas(),reloadDigest()]);
+}
+function rerenderApp(){
+  nav=ROLES[role].nav.includes(nav)?nav:ROLES[role].nav[0];
+  planTab=planTabsFor()[0];
+  ideaTab="new";
+  renderRole();buildNav();goNav(nav);
+}
+// Переключатель «просмотр от имени» — только для суперадмина.
+function setupSwitcher(){
+  const rb=$("#roleBtn");
+  if(!IS_SUPER){if(rb)rb.style.pointerEvents="none";return;}
+  if(rb)rb.style.pointerEvents="";
+  buildRoleMenu();
+}
+async function switchViewAs(uid){
+  API.viewAs=(uid===REAL_UID)?null:uid;
+  if(API.viewAs)localStorage.setItem(VIEWAS_KEY,API.viewAs);else localStorage.removeItem(VIEWAS_KEY);
+  $("#roleMenu").classList.remove("open");
+  let b;
+  try{b=await API.get("/api/bootstrap");}catch(e){toast("Не удалось переключиться");return;}
+  applyIdentity(b);
+  await loadAllData();
+  rerenderApp();buildRoleMenu();
+  toast("Просмотр от имени: "+b.user.name);
+}
+async function boot(){
+  const TG=window.Telegram&&window.Telegram.WebApp;
+  if(TG){try{TG.ready();TG.expand();}catch(e){}}
+  const initData=TG&&TG.initData?TG.initData:"dev";
+  const devTg=qparam("tg")||"1001";
+  let auth;
+  try{
+    auth=await API.post("/api/auth/telegram",{initData,telegramId:(TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user&&TG.initDataUnsafe.user.id)||devTg});
+  }catch(e){
+    accessDenied(e.status===403?"Ваш аккаунт не в списке пользователей приложения.":"Не удалось авторизоваться. Откройте приложение из Telegram.");
+    return;
+  }
+  API.token=auth.token;
+  API.viewAs=localStorage.getItem(VIEWAS_KEY)||null; // сервер игнорирует для не-суперадмина
+  let b;
+  try{b=await API.get("/api/bootstrap");}catch(e){accessDenied();return;}
+  applyIdentity(b);
+  await loadAllData();
+  setupSwitcher();
+  nav=ROLES[role].nav[0];
+  planTab=planTabsFor()[0];
+  ideaTab="new";
+  renderRole();buildNav();goNav(nav);
+}
+
 /* ============ иконки ============ */
 const IC={
   plan:'<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="4"/><path d="M3.5 9.5h17M8 3v3.5M16 3v3.5"/></svg>',
@@ -709,13 +854,13 @@ function seedPubs(){
     mk({title:"Съёмка нового лукбука",type:"post",date:d(5),time:"14:00",deadline:d(-1),status:"work",owner:"eva",g:1})
   ];
 }
-let pubs=ls(S_PUB,null)||seedPubs();
-function savePubs(){ss(S_PUB,pubs);}
+let pubs=[]; // наполняется из API при boot()
+function savePubs(){} // персист через явные вызовы API (см. persistPub/apiStatus)
 
-let rights=ls(S_RIGHT,null)||{createPub:true,seeAll:true,createTask:false};
-function saveRights(){ss(S_RIGHT,rights);}
+let rights={createPub:true,seeAll:true,createTask:false}; // перезаписывается из /api/bootstrap
+function saveRights(){}
 
-let role=ls(S_ROLE,"eva");
+let role="eva"; // задаётся авторизацией в boot()
 if(!ROLES[role])role="eva";
 let nav=ROLES[role].nav[0];
 let planTab="control";
@@ -741,7 +886,7 @@ function dlState(p){
 }
 const isOverdue=p=>{const s=dlState(p);return !!(s&&s.t==="Просрочено");};
 function logH(p,txt){p.history=p.history||[];p.history.unshift({d:nowStamp(),t:txt});p.updated=nowStamp();}
-function setStatus(p,st,txt){const was=ST[p.status].t;p.status=st;logH(p,txt||(ROLES[role].name+": "+was+" → "+ST[st].t));savePubs();}
+function setStatus(p,st,txt){const was=ST[p.status].t;p.status=st;logH(p,txt||(ROLES[role].name+": "+was+" → "+ST[st].t));apiStatus(p,st);}
 
 /* ============ шапка и меню ролей ============ */
 function renderRole(){
@@ -752,16 +897,20 @@ function renderRole(){
   $("#moreAva").textContent=P.i;$("#moreAva").style.background=P.c;
   $("#moreName").textContent=R.name;$("#moreRole").textContent=R.role;
 }
+// Меню суперадмина: список участников для «просмотра от имени».
 function buildRoleMenu(){
   const m=$("#roleMenu");
+  const lbl=m.querySelector(".rl");if(lbl)lbl.textContent="ПРОСМОТР ОТ ИМЕНИ (СУПЕРАДМИН)";
   m.querySelectorAll("button").forEach(b=>b.remove());
-  Object.keys(ROLES).forEach(k=>{
-    const R=ROLES[k],P=PEOPLE[R.who];
+  TEAM.forEach(u=>{
+    const fr=SRV2ROLE[u.role]||"eva";
+    const P=PEOPLE[u.id]||{i:u.initials,c:u.color,n:u.name};
     const b=document.createElement("button");
-    if(k===role)b.classList.add("on");
-    b.innerHTML=`<span class="ra" style="background:${P.c}">${P.i}</span>
-      <span class="rt"><b>${R.name}</b><span>${R.role}</span></span>`;
-    b.addEventListener("click",e=>{e.stopPropagation();switchRole(k);m.classList.remove("open");});
+    if(u.id===ME_ID)b.classList.add("on");
+    const mark=u.id===REAL_UID?" · вы":"";
+    b.innerHTML=`<span class="ra" style="background:${P.c}">${esc(P.i)}</span>
+      <span class="rt"><b>${esc(u.name)}${mark}</b><span>${ROLES[fr]?ROLES[fr].role:esc(u.role)}</span></span>`;
+    b.addEventListener("click",e=>{e.stopPropagation();switchViewAs(u.id);});
     m.appendChild(b);
   });
 }
@@ -1153,9 +1302,9 @@ function popFor(anchor,p){
     it.push({t:"Изменить ответственного",ic:IC.user,f:()=>editOwner(p)});
   }
   it.push({t:"Перенести дату выхода",ic:IC.move,f:()=>editDate(p)});
-  it.push({t:"Дублировать",ic:IC.dup,f:()=>{
-    const c=JSON.parse(JSON.stringify(p));c.id=uid("p");c.title=p.title+" (копия)";c.status="draft";c.comments=[];c.history=[];
-    logH(c,ROLES[role].name+" создал(а) копию");pubs.push(c);savePubs();renderPlan();toast("Дубликат создан");}});
+  it.push({t:"Дублировать",ic:IC.dup,f:async()=>{
+    try{const c=await API.post("/api/publications/"+p.id+"/duplicate");pubs.push(c);renderPlan();toast("Дубликат создан");}
+    catch(e){toast("Не удалось дублировать");}}});
   if(isEva())it.push({t:"Архивировать",ic:IC.arch,danger:true,f:()=>{
     ask("Архивировать?","«"+p.title+"» будет отменена и скрыта из плана.","Архивировать",()=>{
       setStatus(p,"canceled","Ева архивировала");renderPlan();toast("В архиве");});}});
@@ -1163,21 +1312,17 @@ function popFor(anchor,p){
 }
 function editDeadline(p){
   promptSheet("Изменить дедлайн","date",p.deadline||TK,v=>{
-    const was=p.deadline?fmtD(p.deadline):"—";p.deadline=v;
-    logH(p,"Ева: дедлайн "+was+" → "+fmtD(v));savePubs();renderPlan();toast("Дедлайн обновлён");
+    persistPub(p,{deadline:v});toast("Дедлайн обновлён");
   });
 }
 function editDate(p){
   promptSheet("Перенести дату выхода","date",p.date,v=>{
-    const was=fmtD(p.date);p.date=v;
-    logH(p,ROLES[role].name+": выход "+was+" → "+fmtD(v));savePubs();renderPlan();toast("Дата перенесена");
+    persistPub(p,{date:v});toast("Дата перенесена");
   });
 }
 function editOwner(p){
   promptSheet("Ответственный","select",p.owner||"",v=>{
-    const was=p.owner?PEOPLE[p.owner].n:"никто";
-    p.owner=v;logH(p,"Ева: ответственный "+was+" → "+(v?PEOPLE[v].n:"никто"));
-    savePubs();renderPlan();toast("Ответственный обновлён");
+    persistPub(p,{ownerId:v||null});toast("Ответственный обновлён");
   });
 }
 /* ============ мини-шторка с одним полем ============ */
@@ -1187,7 +1332,7 @@ function promptSheet(title,kind,val,cb){
   if(kind==="date")body.innerHTML=`<div class="field"><label>ДАТА</label><input type="date" id="pv1" value="${val}"></div>`;
   if(kind==="select")body.innerHTML=`<div class="field"><label>СОТРУДНИК</label><select id="pv1">
     <option value="">Без ответственного</option>
-    ${["eva","kira","artem"].map(k=>`<option value="${k}" ${k===val?"selected":""}>${PEOPLE[k].n}</option>`).join("")}
+    ${ownerOptions(val)}
   </select></div>`;
   const foot=$("#sheet2Foot");foot.style.display="flex";
   foot.innerHTML=`<button class="btn-ghost" id="pvC">Отмена</button><button class="btn-primary" id="pvS">Сохранить</button>`;
@@ -1198,21 +1343,33 @@ function promptSheet(title,kind,val,cb){
 
 /* ============ шторка публикации ============ */
 let cur=null,curIsNew=false;
+let saveTimer=null;
 function markSaved(){
-  savePubs();
-  $("#sheetHint").innerHTML=`<span class="saved-hint">${IC.check} Сохранено · ${nowStamp().split(", ")[1]}</span>`;
+  $("#sheetHint").innerHTML=`<span class="saved-hint">${IC.check} Сохранение…</span>`;
+  clearTimeout(saveTimer);
+  const target=cur;
+  saveTimer=setTimeout(async()=>{
+    if(!target||!target.id)return;
+    const patch={title:target.title,type:target.type,time:target.time,date:target.date,
+      deadline:target.deadline||null,text:target.text,alt:target.alt,tags:target.tags,
+      track:target.track,trackAt:target.trackAt,dur:target.dur,g:target.g};
+    if(isEva())patch.ownerId=target.owner||null;
+    try{
+      const r=await API.patch("/api/publications/"+target.id,patch);
+      replacePub(r);
+      $("#sheetHint").innerHTML=`<span class="saved-hint">${IC.check} Сохранено · ${nowStamp().split(", ")[1]}</span>`;
+    }catch(e){$("#sheetHint").innerHTML=`<span class="saved-hint">Не сохранено</span>`;}
+  },500);
 }
-function openPub(id,dateOverride){
+async function openPub(id,dateOverride){
   curIsNew=!id;
   if(id){cur=pubs.find(p=>p.id===id);}
   else{
     const dt=dateOverride||selDate;
-    cur={id:uid("p"),title:"",type:"post",date:dt,time:"12:00",
-      deadline:dkOf(addDays(parse(dt),-1)),status:"draft",owner:isMaker()?me():"",
-      g:Math.floor(Math.random()*G.length),dur:null,text:"",alt:"",tags:[],track:"",trackAt:"",
-      media:null,comments:[],history:[],updated:nowStamp()};
-    logH(cur,ROLES[role].name+" создал(а) черновик");
-    pubs.push(cur);savePubs();
+    try{
+      cur=await API.post("/api/publications",{title:"",type:"post",date:dt,time:"12:00",deadline:dkOf(addDays(parse(dt),-1))});
+      pubs.push(cur);
+    }catch(e){toast("Не удалось создать публикацию");return;}
   }
   $("#sheetTitle").textContent=curIsNew?"Новая публикация":(isDm()?"Публикация":"Редактирование");
   $("#sheetHint").innerHTML=isDm()?"":`<span class="saved-hint">${IC.check} Сохраняется автоматически</span>`;
@@ -1264,7 +1421,7 @@ function buildPubForm(){
     </div>
     ${canOwner?`<div class="field"><label>ОТВЕТСТВЕННЫЙ</label>
       <select id="fOwner"><option value="">Без ответственного</option>
-      ${["eva","kira","artem"].map(k=>`<option value="${k}" ${p.owner===k?"selected":""}>${PEOPLE[k].n}</option>`).join("")}
+      ${ownerOptions(p.owner)}
       </select></div>`:""}
     <div class="field"><label>ТЕКСТ ПУБЛИКАЦИИ</label><textarea id="fText" placeholder="Описание под публикацию…">${esc(p.text)}</textarea></div>
     <div class="field"><label>АЛЬТЕРНАТИВНЫЙ ТЕКСТ <span class="opt">необязательно</span></label>
@@ -1308,18 +1465,27 @@ function buildPubForm(){
   const fmtAt=v=>{const d=String(v).replace(/\D/g,"").slice(0,4);if(!d)return "";
     if(d.length<=2)return "0:"+d.padStart(2,"0");const s=d.slice(-2),m=d.slice(0,-2).replace(/^0+/,"")||"0";return m+":"+s;};
   at.addEventListener("input",()=>{at.value=fmtAt(at.value);p.trackAt=at.value;markSaved();});
-  $("#fFile").addEventListener("change",e=>{
+  $("#fFile").addEventListener("change",async e=>{
     const f=e.target.files[0];if(!f)return;
-    const url=URL.createObjectURL(f),kind=f.type.startsWith("video")?"video":"image";
-    p.media={kind,url};
+    const kind=f.type.startsWith("video")?"video":"image";
+    const url=URL.createObjectURL(f);
     $("#upIco").innerHTML=kind==="video"?`<video src="${url}" muted></video>`:`<img src="${url}">`;
-    markSaved();
+    $("#sheetHint").innerHTML=`<span class="saved-hint">${IC.check} Загрузка медиа…</span>`;
+    try{
+      const fd=new FormData();fd.append("file",f);
+      const r=await API.form("/api/publications/"+p.id+"/media",fd);
+      replacePub(r);
+      if(p.media&&p.media.url)$("#upIco").innerHTML=p.media.kind==="video"?`<video src="${p.media.url}" muted></video>`:`<img src="${p.media.url}">`;
+      $("#sheetHint").innerHTML=`<span class="saved-hint">${IC.check} Медиа загружено</span>`;
+      toast("Медиа загружено");
+    }catch(err){toast("Не удалось загрузить медиа");$("#sheetHint").innerHTML=`<span class="saved-hint">Не сохранено</span>`;}
   });
   drawCmt();drawHist();
-  $("#cmtAdd").addEventListener("click",()=>{
+  $("#cmtAdd").addEventListener("click",async()=>{
     const v=$("#cmtIn").value.trim();if(!v)return;
-    p.comments.push({w:me(),t:v,d:nowStamp()});$("#cmtIn").value="";
-    p.updated=nowStamp();markSaved();drawCmt();
+    $("#cmtIn").value="";
+    try{const r=await API.post("/api/publications/"+p.id+"/comments",{text:v});replacePub(r);drawCmt();}
+    catch(e){toast("Не удалось добавить комментарий");}
   });
 }
 function drawCmt(){
@@ -1447,7 +1613,10 @@ function renderIdeas(){
   }
   L.forEach(i=>box.appendChild(ideaCard(i)));
 }
-function ideaState(i,st,msg){i.state=st;saveIdeas();renderIdeas();toast(msg);}
+function ideaState(i,st,msg){
+  i.state=st;renderIdeas();toast(msg);
+  API.patch("/api/ideas/"+i.id,{state:st}).catch(()=>{toast("Не удалось сохранить");reloadIdeas().then(renderIdeas);});
+}
 
 function buildPicker(box,sel){
   box.innerHTML="";
@@ -1556,7 +1725,7 @@ function ideaCard(i){
     ];
     if(!isFash()&&i.state!=="archived")it.push({t:"Архивировать",ic:IC.arch,f:()=>ideaState(i,"archived","В архиве")});
     it.push({t:"Удалить",ic:IC.trash,danger:true,f:()=>ask("Удалить идею?","«"+(i.title||"Без названия")+"» будет удалена.","Удалить",
-      ()=>{ideas=ideas.filter(x=>x.id!==i.id);saveIdeas();renderIdeas();toast("Идея удалена");})});
+      async()=>{try{await API.del("/api/ideas/"+i.id);ideas=ideas.filter(x=>x.id!==i.id);renderIdeas();toast("Идея удалена");}catch(e){toast("Не удалось удалить");}})});
     openPop(m,it);
   });
   F2.appendChild(m);
@@ -1574,84 +1743,73 @@ function ideaCard(i){
     if(!a){toast("Текст идеи не может быть пустым");aa.focus();return;}
     if(isFash()&&!sel.has("вещи")){toast("Тег «вещи» обязателен");return;}
     i.title=ti.value.trim();i.note=nn.value.trim();i.ai=a;i.tags=[...sel];
-    saveIdeas();
+    API.patch("/api/ideas/"+i.id,{title:i.title,note:i.note,ai:i.ai,tags:i.tags}).catch(()=>toast("Не удалось сохранить"));
     if(ideaTag!=="all"&&!i.tags.includes(ideaTag))ideaTag="all";
     renderIdeas();toast("Идея обновлена");
   });
   return el;
 }
-function addToPlan(i){
-  const p={id:uid("p"),title:i.title||"Идея",type:i.type,date:selDate,time:"12:00",
-    deadline:dkOf(addDays(parse(selDate),-1)),status:"draft",owner:isMaker()?me():"",
-    g:i.g,dur:i.dur,text:i.text,alt:i.ai,tags:i.hashtags.slice(0,3),track:"",trackAt:"",
-    media:null,comments:[],history:[],updated:nowStamp()};
-  logH(p,ROLES[role].name+" перенёс(ла) идею в план");
-  pubs.push(p);savePubs();
-  ideaState(i,"work","Идея добавлена в план на "+fmtD(selDate));
+async function addToPlan(i){
+  try{
+    const res=await API.post("/api/ideas/"+i.id+"/to-plan",{date:selDate});
+    if(res.publication)pubs.push(res.publication);
+    i.state="work";renderIdeas();
+    toast("Идея добавлена в план на "+fmtD(selDate));
+  }catch(e){toast("Не удалось добавить в план");}
 }
 $("#pasteBtn").addEventListener("click",async()=>{
   try{const t=await navigator.clipboard.readText();if(t){$("#ideaLink").value=t.trim();return;}}catch(e){}
   $("#ideaLink").value="https://www.instagram.com/reel/Cx7hK2mAbCd/";
 });
-$("#analyzeBtn").addEventListener("click",()=>{
+let analyzing=false;
+$("#analyzeBtn").addEventListener("click",async()=>{
   const v=$("#ideaLink").value.trim();
   if(!v){toast("Вставьте ссылку на публикацию");$("#ideaLink").focus();return;}
+  if(analyzing)return;
+  analyzing=true;
   $("#ideaOut").innerHTML=`<div class="skel"><div class="sk sk1"></div><div class="col">
     <div class="sk w50"></div><div class="sk w90"></div><div class="sk w70"></div><div class="sk w90"></div><div class="sk w50"></div></div></div>`;
-  setTimeout(()=>{
-    $("#ideaOut").innerHTML="";
-    const s=NEW_POOL[newIdx%NEW_POOL.length];newIdx++;
-    const n=Object.assign({id:uid("i"),state:"new",url:v},JSON.parse(JSON.stringify(s)));
-    if(isFash())n.tags=["вещи"];
-    ideas.unshift(n);saveIdeas();
-    $("#ideaLink").value="";ideaTab="new";ideaTag="all";renderIdeas();
+  let created;
+  try{
+    created=await API.post("/api/ideas/analyze",{url:v});
+  }catch(e){
+    analyzing=false;$("#ideaOut").innerHTML="";
+    toast(e.data&&e.data.reason?"Ссылка не поддерживается":"Не удалось начать разбор");
+    return;
+  }
+  $("#ideaLink").value="";
+  // Поллинг статуса, пока воркер разбирает публикацию.
+  let ready=null;
+  for(let k=0;k<40;k++){
+    await new Promise(z=>setTimeout(z,1500));
+    try{const it=await API.get("/api/ideas/"+created.id);if(it.status!=="processing"){ready=it;break;}}catch(e){}
+  }
+  analyzing=false;$("#ideaOut").innerHTML="";
+  if(ready&&ready.status==="ready"){
+    await reloadIdeas();ideaTab="new";ideaTag="all";renderIdeas();
     toast("Ссылка разобрана");
-  },1100);
+  }else{
+    toast(ready&&ready.error?ready.error:"Не удалось разобрать ссылку");
+  }
 });
 /* ============ НОВОСТИ ============ */
 const CATS=["Все","Алгоритмы","Reels","Посты","Stories","Новые функции","Ограничения"];
-const NEWS=[
-  {id:"n1",cat:"Алгоритмы",t:"Оригинальный контент получает больше показов",
-   ch:"Платформа усилила приоритет уникальных публикаций: репосты и переснятые чужие ролики реже попадают в рекомендации.",
-   me:"Заимствованное показывается в основном текущим подписчикам, новый охват почти не растёт.",
-   co:"Отмечайте в плане, что снимаете сами. Переработанный чужой ролик лучше публиковать в сториз, а не как Reels.",
-   src:"instagram.com/creators",d:"14 июля"},
-  {id:"n2",cat:"Reels",t:"Длина Reels до 3 минут стала стандартом",
-   ch:"Ограничение подняли для всех аккаунтов без исключений.",
-   me:"Удержание внимания важнее длины: досмотренные до конца ролики продвигаются заметно лучше брошенных.",
-   co:"Длинный формат берите под сценарий с развитием. Для обычных советов держитесь 20–40 секунд.",
-   src:"about.instagram.com",d:"13 июля"},
-  {id:"n3",cat:"Stories",t:"Стикеры-опросы снова влияют на охват",
-   ch:"Взаимодействие со стикерами учитывается при показе следующих историй.",
-   me:"Аккаунты с регулярными опросами и вопросами удерживают аудиторию дольше.",
-   co:"Ставьте интерактивный стикер хотя бы в одну историю из трёх.",
-   src:"instagram.com/creators",d:"12 июля"},
-  {id:"n4",cat:"Новые функции",t:"Описания изображений учитываются в поиске",
-   ch:"Альтернативный текст теперь помогает системе понять содержимое кадра.",
-   me:"Это влияет на выдачу по темам и на доступность публикации для незрячих.",
-   co:"Заполняйте поле «Альтернативный текст» в карточке: коротко и по делу, без перечисления хештегов.",
-   src:"help.instagram.com",d:"11 июля"},
-  {id:"n5",cat:"Ограничения",t:"Ссылки в тексте поста по-прежнему снижают охват",
-   ch:"Внешние ссылки в подписи остаются некликабельными и понижают приоритет.",
-   me:"Трафик уводит из приложения, поэтому такие посты показываются реже.",
-   co:"Ссылку держите в профиле, в тексте пишите «ссылка в шапке».",
-   src:"instagram.com/creators",d:"10 июля"}
-];
-let newsRead=ls(S_NEWS,[]);
-function saveNews(){ss(S_NEWS,newsRead);}
+let NEWS=[]; // наполняется из /api/digest/current
+let DG={range:"—",summary:"",meta:"—"};
+let newsRead=[];
+function saveNews(){}
 let newsCat="Все";
-const ARCH=[["Выпуск 27","6–12 июля · 5 тем"],["Выпуск 26","29 июня – 5 июля · 3 темы"],["Выпуск 25","22–28 июня · 4 темы"]];
+let ARCH=[]; // архив выпусков из /api/digest/archive
 
 function renderNews(){
-  const mon=mondayOf(today),sun=addDays(mon,6);
-  $("#dgRange").textContent=mon.getDate()+"–"+sun.getDate()+" "+MONG[sun.getMonth()];
-  $("#dgMeta").textContent=NEWS.length+" обновления · собрано Claude · "+fmtD(TK);
-  $("#dgSum").textContent="Главное за неделю: приоритет оригинального контента, Reels до трёх минут и возврат веса интерактивных стикеров в сториз.";
+  $("#dgRange").textContent=DG.range;
+  $("#dgMeta").textContent=DG.meta;
+  $("#dgSum").textContent=DG.summary||(NEWS.length?"":"Дайджест ещё не собран.");
   const a=$("#dgArch");a.innerHTML="";
   ARCH.forEach(([t,s])=>{
     const b=document.createElement("button");
     b.innerHTML=`<span><b>${t}</b><span>${s}</span></span>${IC.right}`;
-    b.addEventListener("click",()=>toast("Архив выпусков — в рабочей версии"));
+    b.addEventListener("click",()=>toast("Прошлые выпуски — в архиве дайджеста"));
     a.appendChild(b);
   });
 }
@@ -1701,27 +1859,29 @@ function newsCard(n,open){
     b.addEventListener("click",e=>{e.stopPropagation();fn();});A.appendChild(b);};
   B("Открыть источник","ghost",()=>toast("Источник: "+n.src));
   if(!isDm()){
-    B("Сохранить в идеи","ghost",()=>{
-      ideas.unshift({id:uid("i"),type:"post",g:Math.floor(Math.random()*G.length),dur:null,state:"new",
-        tags:["идея"],title:n.t.split(" ").slice(0,3).join(" "),note:"Из дайджеста: "+n.co,
-        ai:n.ch+" "+n.me,text:n.t,hashtags:[n.cat.toLowerCase()],author:n.src,url:"https://"+n.src,date:n.d});
-      saveIdeas();toast("Сохранено в идеи");
+    B("Сохранить в идеи","ghost",async()=>{
+      try{
+        await API.post("/api/ideas",{type:"post",state:"new",tags:["идея"],
+          title:n.t.split(" ").slice(0,3).join(" "),note:"Из дайджеста: "+(n.co||""),
+          ai:(n.ch||"")+" "+(n.me||""),text:n.t,hashtags:[n.cat.toLowerCase()],author:n.src,url:"https://"+n.src});
+        await reloadIdeas();toast("Сохранено в идеи");
+      }catch(e){toast("Не удалось сохранить");}
     });
     if(isEva()||(isMaker()&&rights.createTask)){
-      B("Создать задачу","",()=>{
+      B("Создать задачу","",async()=>{
         const dt=dkOf(addDays(today,3));
-        const p={id:uid("p"),title:"Учесть: "+n.t,type:"post",date:dt,time:"12:00",
-          deadline:dkOf(addDays(today,2)),status:"draft",owner:isMaker()?me():"",
-          g:Math.floor(Math.random()*G.length),dur:null,text:n.co,alt:"",tags:[],track:"",trackAt:"",
-          media:null,comments:[],history:[],updated:nowStamp()};
-        logH(p,ROLES[role].name+" создал(а) задачу из дайджеста");
-        pubs.push(p);savePubs();toast("Задача создана на "+fmtD(dt));
+        try{
+          const p=await API.post("/api/publications",{title:"Учесть: "+n.t,type:"post",date:dt,deadline:dkOf(addDays(today,2))});
+          if(p&&p.text!==undefined){await API.patch("/api/publications/"+p.id,{text:n.co||""});}
+          await reloadPubs();toast("Задача создана на "+fmtD(dt));
+        }catch(e){toast("Не удалось создать задачу");}
       });
     }
   }
   B(read?"Прочитано":"Отметить прочитанным","ghost",()=>{
-    if(read)newsRead=newsRead.filter(x=>x!==n.id);else newsRead.push(n.id);
-    saveNews();drawDigest();
+    if(read){newsRead=newsRead.filter(x=>x!==n.id);}
+    else{newsRead.push(n.id);API.post("/api/digest/read",{id:n.id}).catch(()=>{});}
+    drawDigest();
   });
   return el;
 }
@@ -1735,8 +1895,9 @@ function renderMore(){
   let html="";
   if(isEva()){
     html=`<div class="rows">
-      ${row(IC.team,"Команда","Кто работает с планом","3","","team")}
+      ${row(IC.team,"Команда","Кто работает с планом",String(TEAM.length),"","team")}
       ${row(IC.shield,"Права доступа","Что можно контент-мейкеру","","","rights")}
+      ${row(IC.news,"Собрать дайджест","Обновить обзор Instagram","","","gendigest")}
       ${row(IC.bell,"Уведомления","Дайджест и напоминания","","","notif")}
       ${row(IC.arch,"Архив","Отменённые публикации",String(pubs.filter(p=>p.status==="canceled").length),"","archive")}
       ${row(IC.gear,"Настройки","Часовой пояс, аккаунт","MSK","","settings")}
@@ -1765,6 +1926,7 @@ function moreAction(a){
   if(a==="notif")return notifSheet();
   if(a==="archive")return archSheet(pubs.filter(p=>p.status==="canceled"),"Архив");
   if(a==="myarch")return archSheet(pubs.filter(p=>p.owner===me()&&["canceled","published"].includes(p.status)),"Мои материалы");
+  if(a==="gendigest")return API.post("/api/digest/generate").then(()=>toast("Сборка дайджеста запущена — обновится через минуту")).catch(()=>toast("Не удалось запустить"));
   if(a==="help")return helpSheet();
   toast("Экран «"+({profile:"Профиль",settings:"Настройки"}[a]||a)+"» — в рабочей версии");
 }
@@ -1772,35 +1934,66 @@ function sheet2Simple(title,hint,html){
   $("#sheet2Title").textContent=title;$("#sheet2Hint").textContent=hint||"";
   $("#sheet2Foot").style.display="none";$("#sheet2Body").innerHTML=html;openSheet2();
 }
+const ROLE_LABEL={owner:"Владелец",maker:"Контент-мейкер",customer:"Заказчик",fashion:"Fashion-ресёрчер"};
+// Права каждого контент-мейкера (управляет владелец) — сохраняются через API.
 function rightsSheet(){
-  sheet2Simple("Права доступа","Контент-мейкер · Кира",
-   `<div class="rows" style="margin:0 0 4px">
+  const makers=TEAM.filter(u=>u.role==="maker");
+  const block=(u)=>`<div class="secttl" style="padding:12px 2px 4px">${esc(u.name)}</div>
+    <div class="rows" style="margin:0 0 4px" data-uid="${u.id}">
       <div class="row" style="cursor:default"><span class="ri">${IC.plus}</span>
         <span class="rm"><b>Создавать публикации</b><span>Кнопка «+ Публикация» в плане</span></span>
-        <button class="sw${rights.createPub?" on":""}" data-r="createPub"></button></div>
+        <button class="sw${u.rights&&u.rights.createPub?" on":""}" data-r="createPub"></button></div>
       <div class="row" style="cursor:default"><span class="ri">${IC.plan}</span>
         <span class="rm"><b>Видеть общий контент-план</b><span>Вкладка «Все публикации»</span></span>
-        <button class="sw${rights.seeAll?" on":""}" data-r="seeAll"></button></div>
+        <button class="sw${u.rights&&u.rights.seeAll?" on":""}" data-r="seeAll"></button></div>
       <div class="row" style="cursor:default"><span class="ri">${IC.task}</span>
         <span class="rm"><b>Создавать задачи из новостей</b><span>Кнопка в дайджесте</span></span>
-        <button class="sw${rights.createTask?" on":""}" data-r="createTask"></button></div>
-    </div>
-    <p style="font-size:12.5px;color:var(--ink-2);font-weight:500;line-height:1.5;padding:6px 2px 0">
-      Выключенные права полностью скрывают элементы у контент-мейкера — переключите роль в шапке, чтобы проверить.</p>`);
-  $("#sheet2Body").querySelectorAll("[data-r]").forEach(sw=>{
-    sw.addEventListener("click",()=>{
-      const k=sw.dataset.r;rights[k]=!rights[k];saveRights();sw.classList.toggle("on",rights[k]);
-      toast((rights[k]?"Разрешено: ":"Запрещено: ")+sw.previousElementSibling.querySelector("b").textContent.toLowerCase());
+        <button class="sw${u.rights&&u.rights.createTask?" on":""}" data-r="createTask"></button></div>
+    </div>`;
+  sheet2Simple("Права доступа", makers.length+" контент-мейкер(ов)",
+    makers.length?makers.map(block).join(""):
+    `<p style="font-size:13px;color:var(--ink-2);padding:8px 2px">Контент-мейкеров пока нет. Добавьте участника в разделе «Команда».</p>`);
+  $("#sheet2Body").querySelectorAll(".rows[data-uid]").forEach(box=>{
+    const uid=box.dataset.uid;
+    box.querySelectorAll("[data-r]").forEach(sw=>{
+      sw.addEventListener("click",async()=>{
+        const k=sw.dataset.r,val=!sw.classList.contains("on");
+        sw.classList.toggle("on",val);
+        try{
+          const u=await API.patch("/api/users/"+uid+"/rights",{[k]:val});
+          const idx=TEAM.findIndex(x=>x.id===uid);if(idx>=0)TEAM[idx]=u;
+          if(uid===ME_ID)rights=u.rights;
+          toast((val?"Разрешено: ":"Запрещено: ")+sw.previousElementSibling.querySelector("b").textContent.toLowerCase());
+        }catch(e){sw.classList.toggle("on",!val);toast("Не удалось сохранить");}
+      });
     });
   });
 }
 function teamSheet(){
-  const rows=[["eva","Владелец","Полный доступ, согласование"],["kira","Контент-мейкер","Ведёт публикации"],
-    ["artem","Контент-мейкер","Ведёт публикации"],["dmitry","Заказчик","Только просмотр"]];
-  sheet2Simple("Команда","4 участника",
-    `<div class="rows" style="margin:0">${rows.map(([k,r,s])=>`<div class="row" style="cursor:default">
-      <span class="ri" style="background:${PEOPLE[k].c};color:#fff;font-weight:800;font-size:12px">${PEOPLE[k].i}</span>
-      <span class="rm"><b>${PEOPLE[k].n}</b><span>${s}</span></span><span class="rv">${r}</span></div>`).join("")}</div>`);
+  const list=TEAM.slice();
+  const rowHtml=(u)=>`<div class="row" style="cursor:default">
+      <span class="ri" style="background:${(PEOPLE[u.id]&&PEOPLE[u.id].c)||u.color};color:#fff;font-weight:800;font-size:12px">${esc(u.initials)}</span>
+      <span class="rm"><b>${esc(u.name)}</b><span>tg ${esc(u.telegramId)}</span></span>
+      <span class="rv">${ROLE_LABEL[u.role]||u.role}</span></div>`;
+  sheet2Simple("Команда", list.length+" участник(ов)",
+    `<div class="rows" style="margin:0 0 10px">${list.map(rowHtml).join("")}</div>
+     <div class="secttl" style="padding:6px 2px 6px">ДОБАВИТЬ УЧАСТНИКА</div>
+     <div class="field"><label>TELEGRAM ID</label><input type="text" id="nuId" inputmode="numeric" placeholder="напр. 123456789"></div>
+     <div class="field"><label>ИМЯ</label><input type="text" id="nuName" placeholder="Имя участника"></div>
+     <div class="field"><label>РОЛЬ</label><select id="nuRole">
+       <option value="maker">Контент-мейкер</option><option value="owner">Владелец</option>
+       <option value="customer">Заказчик</option><option value="fashion">Fashion-ресёрчер</option></select></div>
+     <button class="btn-primary" id="nuAdd" style="width:100%">Добавить</button>`);
+  $("#nuAdd").addEventListener("click",async()=>{
+    const id=$("#nuId").value.trim(),name=$("#nuName").value.trim(),r=$("#nuRole").value;
+    if(!/^\d+$/.test(id)){toast("Укажите числовой Telegram ID");return;}
+    if(!name){toast("Укажите имя");return;}
+    try{
+      const u=await API.post("/api/users",{telegramId:id,name,role:r});
+      TEAM.push(u);PEOPLE[u.id]={n:u.name,i:u.initials,c:u.color};
+      toast("Участник добавлен");teamSheet();
+    }catch(e){toast(e.status===409?"Такой участник уже есть":"Не удалось добавить");}
+  });
 }
 function notifSheet(){
   const items=isDm()?[["Дайджест новостей","Раз в неделю",true],["Публикация вышла","Когда пост опубликован",false]]
@@ -1831,7 +2024,7 @@ function helpSheet(){
 }
 
 /* ============ старт ============ */
-renderRole();buildRoleMenu();buildNav();goNav(nav);
+boot();
 })();
 </script>
 </body>
