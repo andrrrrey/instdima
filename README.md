@@ -67,6 +67,9 @@ docker-compose.yml     — postgres, redis, app, worker, caddy
 
 ## Развёртывание (production, Docker)
 
+> Готовая пошаговая инструкция под домен `instdima.ru` — в **[DEPLOY.md](DEPLOY.md)**.
+> `Caddyfile` уже настроен на этот домен; SSL (Let's Encrypt) выпускается автоматически.
+
 1. Клонировать репозиторий на VPS, направить DNS-домена на сервер.
 2. Заполнить конфиг:
    ```bash
