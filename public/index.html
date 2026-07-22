@@ -1225,6 +1225,25 @@ function emptyBox(t,p){
 }
 
 /* ============ карточка публикации ============ */
+/* Заполнение превью реальным медиа (кадр видео / изображение). */
+function mediaFill(m){
+  if(!m||!m.url)return "";
+  return m.kind==="video"
+    ? `<video src="${m.url}#t=0.1" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover"></video>`
+    : `<img src="${m.url}" style="width:100%;height:100%;object-fit:cover" alt="">`;
+}
+/* Полноэкранный просмотр медиа (видео с плеером / изображение). */
+function openMediaViewer(m){
+  if(!m||!m.url){toast("Медиа не прикреплено");return;}
+  $("#sheet2Title").textContent="Медиа";
+  $("#sheet2Hint").textContent="";
+  $("#sheet2Foot").style.display="none";
+  $("#sheet2Body").innerHTML=m.kind==="video"
+    ? `<video src="${m.url}" controls playsinline autoplay style="width:100%;max-height:72vh;border-radius:16px;background:#000;display:block"></video>`
+    : `<img src="${m.url}" style="width:100%;border-radius:16px;display:block" alt="">`;
+  openSheet2();
+}
+
 function pubCard(p,reason){
   const T=TYPES[p.type],isV=p.type==="reels",s=ST[p.status],d=dlState(p);
   const el=document.createElement("article");el.className="pc";
@@ -1243,7 +1262,8 @@ function pubCard(p,reason){
   }
   el.innerHTML=`
     <div class="pc__top">
-      <div class="pc__thumb" style="background:${grad(p.g)}">
+      <div class="pc__thumb${p.media&&p.media.url?" has-media":""}" style="background:${grad(p.g)}">
+        ${mediaFill(p.media)}
         ${isV?`<span class="play"><span>${IC.play}</span></span>`:""}
         ${isV&&p.dur?`<span class="dur">${p.dur}</span>`:""}
       </div>
@@ -1260,6 +1280,11 @@ function pubCard(p,reason){
     </div>
     <div class="pc__foot" id="f-${p.id}"></div>`;
   el.querySelector(".pc__top").addEventListener("click",()=>openPub(p.id));
+  if(p.media&&p.media.url){
+    const th=el.querySelector(".pc__thumb");
+    th.style.cursor="zoom-in";
+    th.addEventListener("click",e=>{e.stopPropagation();openMediaViewer(p.media);});
+  }
   const f=el.querySelector(".pc__foot");
   buildFoot(f,p);
   return el;
@@ -1381,7 +1406,8 @@ function buildPubView(){
   const p=cur,T=TYPES[p.type],s=ST[p.status];
   $("#sheetBody").innerHTML=`
     <div class="pc__top" style="padding:0 0 14px;cursor:default">
-      <div class="pc__thumb" style="background:${grad(p.g)};width:88px;height:110px">
+      <div class="pc__thumb" id="viewThumb" style="background:${grad(p.g)};width:88px;height:110px${p.media&&p.media.url?';cursor:zoom-in':''}">
+        ${mediaFill(p.media)}
         ${p.type==="reels"?`<span class="play"><span>${IC.play}</span></span>`:""}
       </div>
       <div class="pc__m">
@@ -1391,7 +1417,12 @@ function buildPubView(){
         <div class="pc__meta"><div>${IC.plan}Выход: <b>${fmtD(p.date)}, ${p.time}</b></div></div>
       </div>
     </div>
+    ${p.media&&p.media.url?`<button type="button" class="btn-ghost" id="viewMediaBtn" style="width:100%;margin:0 0 14px">${p.media.kind==="video"?"▶ Смотреть видео":"Открыть изображение"}</button>`:""}
     ${p.text?`<div class="blk"><h4>ТЕКСТ ПУБЛИКАЦИИ</h4><p style="margin:0;font-size:14px;line-height:1.5">${esc(p.text)}</p></div>`:""}`;
+  if(p.media&&p.media.url){
+    $("#viewThumb").addEventListener("click",()=>openMediaViewer(p.media));
+    const vb=$("#viewMediaBtn");if(vb)vb.addEventListener("click",()=>openMediaViewer(p.media));
+  }
 }
 function buildPubForm(){
   const p=cur,canOwner=isEva();
@@ -1404,10 +1435,11 @@ function buildPubForm(){
     </div>
     <div class="field"><label>МЕДИА</label>
       <label class="uploader" for="fFile">
-        <span class="up-ico" id="upIco">${p.media&&p.media.url?(p.media.kind==="video"?`<video src="${p.media.url}" muted></video>`:`<img src="${p.media.url}">`):IC.post}</span>
-        <span class="up-txt"><b id="upT">Прикрепить медиа</b><span id="upS">Файл сохранится в карточке</span></span>
+        <span class="up-ico" id="upIco">${p.media&&p.media.url?mediaFill(p.media):IC.post}</span>
+        <span class="up-txt"><b id="upT">${p.media&&p.media.url?"Заменить медиа":"Прикрепить медиа"}</b><span id="upS">Файл сохранится в карточке</span></span>
       </label>
       <input type="file" id="fFile" accept="image/*,video/*" hidden>
+      <button type="button" class="btn-ghost" id="viewMediaBtn" style="width:100%;margin-top:8px;display:${p.media&&p.media.url?"block":"none"}">${p.media&&p.media.kind==="video"?"▶ Смотреть видео":"Открыть изображение"}</button>
     </div>
     <div class="field"><label>НАЗВАНИЕ</label>
       <input type="text" id="fTitle" placeholder="Например: Летняя коллекция" value="${esc(p.title)}"></div>
@@ -1465,17 +1497,21 @@ function buildPubForm(){
   const fmtAt=v=>{const d=String(v).replace(/\D/g,"").slice(0,4);if(!d)return "";
     if(d.length<=2)return "0:"+d.padStart(2,"0");const s=d.slice(-2),m=d.slice(0,-2).replace(/^0+/,"")||"0";return m+":"+s;};
   at.addEventListener("input",()=>{at.value=fmtAt(at.value);p.trackAt=at.value;markSaved();});
+  const viewBtn=$("#viewMediaBtn");
+  if(viewBtn)viewBtn.addEventListener("click",()=>openMediaViewer(p.media));
   $("#fFile").addEventListener("change",async e=>{
     const f=e.target.files[0];if(!f)return;
     const kind=f.type.startsWith("video")?"video":"image";
     const url=URL.createObjectURL(f);
-    $("#upIco").innerHTML=kind==="video"?`<video src="${url}" muted></video>`:`<img src="${url}">`;
+    $("#upIco").innerHTML=mediaFill({kind,url});
+    $("#upT").textContent="Заменить медиа";
     $("#sheetHint").innerHTML=`<span class="saved-hint">${IC.check} Загрузка медиа…</span>`;
     try{
       const fd=new FormData();fd.append("file",f);
       const r=await API.form("/api/publications/"+p.id+"/media",fd);
       replacePub(r);
-      if(p.media&&p.media.url)$("#upIco").innerHTML=p.media.kind==="video"?`<video src="${p.media.url}" muted></video>`:`<img src="${p.media.url}">`;
+      if(p.media&&p.media.url)$("#upIco").innerHTML=mediaFill(p.media);
+      if(viewBtn){viewBtn.style.display="block";viewBtn.textContent=p.media&&p.media.kind==="video"?"▶ Смотреть видео":"Открыть изображение";}
       $("#sheetHint").innerHTML=`<span class="saved-hint">${IC.check} Медиа загружено</span>`;
       toast("Медиа загружено");
     }catch(err){toast("Не удалось загрузить медиа");$("#sheetHint").innerHTML=`<span class="saved-hint">Не сохранено</span>`;}
@@ -1674,7 +1710,8 @@ function ideaCard(i){
   el.className="ic"+(["used","archived"].includes(i.state)?" dim":"")+(openI.has(i.id)?" open":"");
   el.innerHTML=`
     <div class="ic__top">
-      <div class="ic__thumb" style="background:${grad(i.g)}">
+      <div class="ic__thumb" style="background:${grad(i.g)}${i.media&&i.media.url?';cursor:zoom-in':''}">
+        ${mediaFill(i.media)}
         ${isV?`<span class="play"><span>${IC.play}</span></span>`:""}
         ${i.dur?`<span class="dur">${i.dur}</span>`:""}
       </div>
@@ -1708,6 +1745,10 @@ function ideaCard(i){
     el.querySelector(".mt").textContent=on?"Свернуть":"Читать полностью";
   };
   el.querySelector(".ic__top").addEventListener("click",()=>{if(!el.classList.contains("editing"))toggle();});
+  if(i.media&&i.media.url){
+    const ith=el.querySelector(".ic__thumb");
+    ith.addEventListener("click",e=>{e.stopPropagation();openMediaViewer(i.media);});
+  }
   el.querySelector(".ic__more").addEventListener("click",e=>{e.stopPropagation();toggle();});
 
   const F2=el.querySelector(".ic__foot");
