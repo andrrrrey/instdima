@@ -2073,21 +2073,54 @@ function rightsSheet(){
     });
   });
 }
+const ROLE_KEYS=["owner","maker","customer","fashion"];
+function roleOptions(sel){
+  return ROLE_KEYS.map(r=>`<option value="${r}" ${r===sel?"selected":""}>${ROLE_LABEL[r]}</option>`).join("");
+}
 function teamSheet(){
   const list=TEAM.slice();
-  const rowHtml=(u)=>`<div class="row" style="cursor:default">
-      <span class="ri" style="background:${(PEOPLE[u.id]&&PEOPLE[u.id].c)||u.color};color:#fff;font-weight:800;font-size:12px">${esc(u.initials)}</span>
-      <span class="rm"><b>${esc(u.name)}</b><span>tg ${esc(u.telegramId)}</span></span>
-      <span class="rv">${ROLE_LABEL[u.role]||u.role}</span></div>`;
+  const rowHtml=(u)=>{
+    const self=u.id===REAL_UID;
+    return `<div class="row" style="cursor:default;align-items:center;gap:8px">
+      <span class="ri" style="background:${(PEOPLE[u.id]&&PEOPLE[u.id].c)||u.color};color:#fff;font-weight:800;font-size:12px;flex:0 0 auto">${esc(u.initials)}</span>
+      <span class="rm" style="min-width:0;flex:1"><b style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(u.name)}${self?" · вы":""}</b><span>tg ${esc(u.telegramId)}</span></span>
+      <select class="team-role" data-uid="${u.id}" ${self?"disabled":""} style="flex:0 0 auto;max-width:148px;padding:8px 9px;font-size:12.5px;border-radius:12px">${roleOptions(u.role)}</select>
+      ${self?"":`<button class="mini" data-del="${u.id}" aria-label="Удалить" style="flex:0 0 auto">${IC.trash}</button>`}
+    </div>`;
+  };
   sheet2Simple("Команда", list.length+" участник(ов)",
-    `<div class="rows" style="margin:0 0 10px">${list.map(rowHtml).join("")}</div>
+    `<div class="rows" style="margin:0 0 4px">${list.map(rowHtml).join("")}</div>
+     <p style="font-size:11.5px;color:var(--ink-3);padding:2px 2px 12px;line-height:1.5">Меняйте роль в выпадающем списке. Корзина — убрать участника из команды (доступ пропадёт).</p>
      <div class="secttl" style="padding:6px 2px 6px">ДОБАВИТЬ УЧАСТНИКА</div>
      <div class="field"><label>TELEGRAM ID</label><input type="text" id="nuId" inputmode="numeric" placeholder="напр. 123456789"></div>
      <div class="field"><label>ИМЯ</label><input type="text" id="nuName" placeholder="Имя участника"></div>
-     <div class="field"><label>РОЛЬ</label><select id="nuRole">
-       <option value="maker">Контент-мейкер</option><option value="owner">Медиа ассистент</option>
-       <option value="customer">Владелец</option><option value="fashion">Fashion-ресёрчер</option></select></div>
+     <div class="field"><label>РОЛЬ</label><select id="nuRole">${roleOptions("maker")}</select></div>
      <button class="btn-primary" id="nuAdd" style="width:100%">Добавить</button>`);
+  // смена роли
+  $("#sheet2Body").querySelectorAll(".team-role").forEach(sel=>{
+    sel.addEventListener("change",async()=>{
+      const uid=sel.dataset.uid,role=sel.value;
+      try{
+        const u=await API.patch("/api/users/"+uid,{role});
+        const i=TEAM.findIndex(x=>x.id===uid);if(i>=0)TEAM[i]=u;
+        toast("Роль обновлена: "+(ROLE_LABEL[role]||role));
+      }catch(e){toast("Не удалось изменить роль");teamSheet();}
+    });
+  });
+  // удаление
+  $("#sheet2Body").querySelectorAll("[data-del]").forEach(b=>{
+    b.addEventListener("click",()=>{
+      const uid=b.dataset.del,u=TEAM.find(x=>x.id===uid);
+      ask("Убрать участника?","«"+(u?u.name:"")+"» потеряет доступ к приложению.","Убрать",async()=>{
+        try{
+          await API.del("/api/users/"+uid);
+          TEAM=TEAM.filter(x=>x.id!==uid);
+          toast("Участник убран");teamSheet();
+        }catch(e){toast(e.data&&e.data.error==="cannot_delete_self"?"Нельзя убрать себя":"Не удалось убрать");}
+      });
+    });
+  });
+  // добавление
   $("#nuAdd").addEventListener("click",async()=>{
     const id=$("#nuId").value.trim(),name=$("#nuName").value.trim(),r=$("#nuRole").value;
     if(!/^\d+$/.test(id)){toast("Укажите числовой Telegram ID");return;}
