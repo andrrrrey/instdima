@@ -94,14 +94,16 @@ export async function statObject(key) {
 }
 
 // Presigned URL для s3-режима (для больших видео эффективнее отдавать напрямую).
-export async function presignedUrl(key, ttl = config.storage.urlTtlSec) {
+// downloadName — если задан, файл отдаётся как вложение с этим именем.
+export async function presignedUrl(key, ttl, downloadName) {
   const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
   const { GetObjectCommand } = require('@aws-sdk/client-s3');
-  return getSignedUrl(
-    s3(),
-    new GetObjectCommand({ Bucket: config.storage.s3.bucket, Key: key }),
-    { expiresIn: ttl },
-  );
+  const cmd = new GetObjectCommand({
+    Bucket: config.storage.s3.bucket,
+    Key: key,
+    ...(downloadName ? { ResponseContentDisposition: `attachment; filename="${downloadName}"` } : {}),
+  });
+  return getSignedUrl(s3(), cmd, { expiresIn: ttl || config.storage.urlTtlSec });
 }
 
 // --- Подписанные ссылки на наш /api/media/:id ---

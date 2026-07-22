@@ -1652,15 +1652,21 @@ async function copyTxt(t,msg){
     try{document.execCommand("copy");toast(msg);}catch(_){toast("Не удалось скопировать");}ta.remove();}
 }
 function dlIdea(i){
-  const vert=i.type!=="post",w=vert?720:1080,h=vert?1280:1350;
-  const c=document.createElement("canvas");c.width=w;c.height=h;
-  const x=c.getContext("2d"),gr=x.createLinearGradient(0,0,w,h),cc=G[i.g%G.length];
-  gr.addColorStop(0,cc[0]);gr.addColorStop(1,cc[1]);x.fillStyle=gr;x.fillRect(0,0,w,h);
-  x.fillStyle="rgba(27,28,31,.5)";x.font="600 "+Math.round(w/26)+"px sans-serif";
-  x.fillText("#"+i.hashtags.join("  #"),40,h-52);
-  c.toBlob(b=>{const u=URL.createObjectURL(b),a=document.createElement("a");
-    a.href=u;a.download="idea-"+i.id+".png";a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);
-    toast(i.type==="reels"?"Видео скачано":"Фото скачано");});
+  if(!i.media||!i.media.url){toast("Файл ещё не готов");return;}
+  // Абсолютный URL реального медиа + флаг attachment.
+  const base=i.media.url.startsWith("http")?i.media.url:(location.origin+i.media.url);
+  const url=base+(base.includes("?")?"&":"?")+"download=1";
+  const name="idea-"+i.id+((i.media.kind==="video"||i.type==="reels")?".mp4":".jpg");
+  const TG=window.Telegram&&window.Telegram.WebApp;
+  // 1) Нативная загрузка Telegram (Bot API 8.0+)
+  if(TG&&typeof TG.downloadFile==="function"){
+    try{TG.downloadFile({url,file_name:name});return;}catch(e){}
+  }
+  // 2) Открыть во внешнем браузере — там сработает скачивание (attachment)
+  if(TG&&typeof TG.openLink==="function"){TG.openLink(url);toast("Открываю файл для сохранения…");return;}
+  // 3) Обычный браузер
+  const a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
 }
 function ideaCard(i){
   const isV=i.type==="reels";
