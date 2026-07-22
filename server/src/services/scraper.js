@@ -60,7 +60,11 @@ async function apifyFetch(url) {
       resultsLimit: 1,
       addParentData: false,
     },
-    { timeoutSecs: Math.floor(config.scraper.timeoutMs / 1000) },
+    {
+      // имя опции у apify-client — `timeout` (сек), не `timeoutSecs`
+      timeout: Math.floor(config.scraper.timeoutMs / 1000),
+      waitSecs: Math.floor(config.scraper.timeoutMs / 1000),
+    },
   );
 
   const { items } = await client.dataset(run.defaultDatasetId).listItems();
