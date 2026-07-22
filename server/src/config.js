@@ -63,7 +63,7 @@ export const config = {
 
   // Claude через RouterAI (OpenAI-совместимый API)
   claude: {
-    baseUrl: req('ROUTERAI_BASE_URL', 'https://routerai.ru/v1'),
+    baseUrl: req('ROUTERAI_BASE_URL', 'https://routerai.ru/api/v1'),
     apiKey: req('ROUTERAI_API_KEY', ''),
     model: req('CLAUDE_MODEL', 'claude-sonnet-4'),
     visionModel: req('CLAUDE_VISION_MODEL', req('CLAUDE_MODEL', 'claude-sonnet-4')),

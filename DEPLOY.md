@@ -79,7 +79,7 @@ SUPERADMIN_IDS=ВАШ_TG_ID
 DATABASE_URL=postgresql://contentplan:contentplan@postgres:5432/contentplan
 REDIS_URL=redis://redis:6379
 
-ROUTERAI_BASE_URL=https://routerai.ru/v1
+ROUTERAI_BASE_URL=https://routerai.ru/api/v1
 ROUTERAI_API_KEY=ВАШ_КЛЮЧ_ROUTERAI
 CLAUDE_MODEL=claude-sonnet-4      # уточните точное имя модели у RouterAI
 
