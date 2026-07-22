@@ -33,7 +33,11 @@ export function peopleMap(users) {
 
 function serializeMedia(media) {
   if (!media) return null;
-  return { kind: media.kind, url: mediaUrl(media.id), id: media.id };
+  const url = mediaUrl(media.id);
+  const out = { kind: media.kind, url, id: media.id };
+  // Постер-кадр для видео (надёжное превью на iOS).
+  if (media.framePath) out.poster = `${url}&frame=1`;
+  return out;
 }
 
 function stamp(date) {

@@ -1228,9 +1228,12 @@ function emptyBox(t,p){
 /* Заполнение превью реальным медиа (кадр видео / изображение). */
 function mediaFill(m){
   if(!m||!m.url)return "";
-  return m.kind==="video"
-    ? `<video src="${m.url}#t=0.1" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover"></video>`
-    : `<img src="${m.url}" style="width:100%;height:100%;object-fit:cover" alt="">`;
+  if(m.kind==="video"){
+    // постер-кадр (надёжно на iOS); иначе — <video> с попыткой показать кадр
+    if(m.poster)return `<img src="${m.poster}" style="width:100%;height:100%;object-fit:cover" alt="">`;
+    return `<video src="${m.url}#t=0.1" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover"></video>`;
+  }
+  return `<img src="${m.url}" style="width:100%;height:100%;object-fit:cover" alt="">`;
 }
 /* Полноэкранный просмотр медиа (видео с плеером / изображение). */
 function openMediaViewer(m){
@@ -1239,7 +1242,7 @@ function openMediaViewer(m){
   $("#sheet2Hint").textContent="";
   $("#sheet2Foot").style.display="none";
   $("#sheet2Body").innerHTML=m.kind==="video"
-    ? `<video src="${m.url}" controls playsinline autoplay style="width:100%;max-height:72vh;border-radius:16px;background:#000;display:block"></video>`
+    ? `<video src="${m.url}" controls playsinline preload="metadata"${m.poster?` poster="${m.poster}"`:""} style="width:100%;max-height:72vh;border-radius:16px;background:#000;display:block"></video>`
     : `<img src="${m.url}" style="width:100%;border-radius:16px;display:block" alt="">`;
   openSheet2();
 }

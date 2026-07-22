@@ -4,6 +4,7 @@ import { prisma } from '../db.js';
 import { authGuard } from '../auth/session.js';
 import { config } from '../config.js';
 import { putObject } from '../services/storage.js';
+import { extractFrame } from '../services/ffmpeg.js';
 import { serializePublication } from '../serializers.js';
 import { fmtD, dateKey } from '../util/format.js';
 import {
@@ -250,8 +251,20 @@ export default async function publicationRoutes(app) {
     const key = `pub/${pub.id}/${Date.now()}.${ext}`;
     await putObject(key, buffer, file.mimetype);
 
+    // Для видео извлекаем кадр-постер (надёжное превью на iOS).
+    let framePath = null;
+    if (kind === 'video') {
+      try {
+        const frame = await extractFrame(buffer, 1);
+        framePath = `pub/${pub.id}/poster-${Date.now()}.jpg`;
+        await putObject(framePath, frame, 'image/jpeg');
+      } catch (e) {
+        req.log?.warn?.(`poster extract failed: ${e.message}`);
+      }
+    }
+
     const media = await prisma.media.create({
-      data: { kind, path: key, mime: file.mimetype, size: buffer.length },
+      data: { kind, path: key, mime: file.mimetype, size: buffer.length, framePath },
     });
     await prisma.publication.update({
       where: { id: pub.id },

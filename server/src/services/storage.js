@@ -81,6 +81,12 @@ export function getObjectStream(key) {
   return createReadStream(diskPath(key));
 }
 
+// Частичная отдача (Range) — нужна для проигрывания видео на iOS.
+export function getObjectRangeStream(key, start, end) {
+  if (driver === 's3') return null;
+  return createReadStream(diskPath(key), { start, end });
+}
+
 export async function statObject(key) {
   if (driver === 's3') {
     const { HeadObjectCommand } = require('@aws-sdk/client-s3');
