@@ -67,10 +67,15 @@ async function seedSuperadmins() {
 }
 
 async function seedSources() {
+  // Сеем источники только при пустой таблице (первичная настройка).
+  // Дальше ими управляет владелец в приложении — редеплой их не трогает.
+  const count = await prisma.digestSource.count();
+  if (count > 0) {
+    console.log(`[seed] источники уже заданы (${count}), пропускаю.`);
+    return;
+  }
   const sources = parseDigestSources();
   for (const s of sources) {
-    const exists = await prisma.digestSource.findFirst({ where: { url: s.url } });
-    if (exists) continue;
     await prisma.digestSource.create({
       data: { url: s.url, type: s.type, title: s.title, active: true },
     });
