@@ -95,7 +95,15 @@ export const config = {
   digest: {
     cron: req('DIGEST_CRON', '0 9 * * 1'), // понедельник 09:00
     // "https://…/rss|rss|Заголовок; https://…|html|Другой источник"
-    sources: req('DIGEST_SOURCES', ''),
+    // По умолчанию — Google News RSS (не блокирует ботов, ищет по теме и по Моссери).
+    sources: req(
+      'DIGEST_SOURCES',
+      [
+        'https://news.google.com/rss/search?q=instagram+update+OR+instagram+feature+OR+instagram+algorithm+when:14d&hl=en-US&gl=US&ceid=US:en|rss|Instagram — обновления',
+        'https://news.google.com/rss/search?q=%22Adam+Mosseri%22+when:30d&hl=en-US&gl=US&ceid=US:en|rss|Adam Mosseri (глава Instagram)',
+        'https://news.google.com/rss/search?q=instagram+reels+OR+instagram+stories+update+when:14d&hl=en-US&gl=US&ceid=US:en|rss|Reels и Stories',
+      ].join('; '),
+    ),
   },
 
   ffmpegPath: req('FFMPEG_PATH', ''),

@@ -563,6 +563,7 @@ const API={
   get(p){return this.req("GET",p);},
   post(p,b){return this.req("POST",p,b===undefined?{}:b);},
   patch(p,b){return this.req("PATCH",p,b);},
+  put(p,b){return this.req("PUT",p,b);},
   del(p){return this.req("DELETE",p);},
   form(p,fd){return this.req("POST",p,fd,true);}
 };
@@ -1948,6 +1949,7 @@ function renderMore(){
       ${row(IC.team,"Команда","Кто работает с планом",String(TEAM.length),"","team")}
       ${row(IC.shield,"Права доступа","Что можно контент-мейкеру","","","rights")}
       ${row(IC.news,"Собрать дайджест","Обновить обзор Instagram","","","gendigest")}
+      ${row(IC.link,"Источники дайджеста","Откуда брать новости","","","dgsources")}
       ${row(IC.bell,"Уведомления","Дайджест и напоминания","","","notif")}
       ${row(IC.arch,"Архив","Отменённые публикации",String(pubs.filter(p=>p.status==="canceled").length),"","archive")}
       ${row(IC.gear,"Настройки","Часовой пояс, аккаунт","MSK","","settings")}
@@ -1977,8 +1979,45 @@ function moreAction(a){
   if(a==="archive")return archSheet(pubs.filter(p=>p.status==="canceled"),"Архив");
   if(a==="myarch")return archSheet(pubs.filter(p=>p.owner===me()&&["canceled","published"].includes(p.status)),"Мои материалы");
   if(a==="gendigest")return API.post("/api/digest/generate").then(()=>toast("Сборка дайджеста запущена — обновится через минуту")).catch(()=>toast("Не удалось запустить"));
+  if(a==="dgsources")return sourcesSheet();
   if(a==="help")return helpSheet();
   toast("Экран «"+({profile:"Профиль",settings:"Настройки"}[a]||a)+"» — в рабочей версии");
+}
+// Редактор источников дайджеста (для владельца): список + добавление + сохранение.
+async function sourcesSheet(){
+  sheet2Simple("Источники дайджеста","загрузка…",`<p style="font-size:13px;color:var(--ink-2);padding:8px 2px">Загрузка…</p>`);
+  let items=[];
+  try{items=(await API.get("/api/digest/sources")).items||[];}catch(e){toast("Не удалось загрузить источники");return;}
+  const render=()=>{
+    $("#sheet2Hint").textContent=items.length+" источник(ов)";
+    const list=items.map((s,idx)=>`<div class="row" style="cursor:default;align-items:flex-start">
+      <span class="rm"><b>${esc(s.title||s.url)}</b><span style="word-break:break-all;font-size:11.5px">${esc(s.url)}</span></span>
+      <button class="mini" data-del="${idx}" aria-label="Удалить">${IC.trash}</button></div>`).join("");
+    $("#sheet2Body").innerHTML=`
+      <div class="rows" style="margin:0 0 12px">${list||`<p style="font-size:13px;color:var(--ink-2);padding:8px 2px">Источников пока нет — добавьте RSS-ленту ниже.</p>`}</div>
+      <div class="secttl" style="padding:4px 2px 8px">ДОБАВИТЬ ИСТОЧНИК (RSS)</div>
+      <div class="field"><label>НАЗВАНИЕ</label><input type="text" id="dsTitle" placeholder="Напр. Instagram — обновления"></div>
+      <div class="field"><label>URL RSS-ленты</label><input type="text" id="dsUrl" placeholder="https://…/rss" inputmode="url"></div>
+      <button class="btn-ghost" id="dsAdd" style="width:100%;margin-bottom:10px">Добавить в список</button>
+      <button class="btn-primary" id="dsSave" style="width:100%">Сохранить и собрать дайджест</button>
+      <p style="font-size:11.5px;color:var(--ink-3);padding:10px 2px 0;line-height:1.5">Совет: удобные ленты — Google News по запросу, напр.<br>
+      <span style="word-break:break-all">https://news.google.com/rss/search?q=instagram+update&hl=ru&gl=RU&ceid=RU:ru</span></p>`;
+    $("#sheet2Body").querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",()=>{items.splice(+b.dataset.del,1);render();}));
+    $("#dsAdd").addEventListener("click",()=>{
+      const url=$("#dsUrl").value.trim(),title=$("#dsTitle").value.trim();
+      if(!/^https?:\/\//i.test(url)){toast("Укажите корректный URL (http/https)");return;}
+      items.push({url,type:"rss",title:title||url,active:true});render();
+    });
+    $("#dsSave").addEventListener("click",async()=>{
+      try{
+        await API.put("/api/digest/sources",{sources:items});
+        await API.post("/api/digest/generate");
+        toast("Источники сохранены, дайджест собирается…");
+        closeSheet2();
+      }catch(e){toast("Не удалось сохранить источники");}
+    });
+  };
+  render();
 }
 function sheet2Simple(title,hint,html){
   $("#sheet2Title").textContent=title;$("#sheet2Hint").textContent=hint||"";
