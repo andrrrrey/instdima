@@ -9,7 +9,14 @@ const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_
 
 async function fetchText(url) {
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'ContentPlanBot/1.0 (+digest)' },
+    // Браузерный User-Agent — иначе многие издатели отдают 403 боту.
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
+      'Accept-Language': 'ru,en;q=0.8',
+    },
+    redirect: 'follow',
     signal: AbortSignal.timeout(20000),
   });
   if (!res.ok) throw new Error(`fetch ${url} → ${res.status}`);

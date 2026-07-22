@@ -91,7 +91,7 @@ STORAGE_DIR=/data/media
 JWT_SECRET=ПЕРВЫЙ_openssl_rand
 MEDIA_URL_SECRET=ВТОРОЙ_openssl_rand
 
-DIGEST_SOURCES=https://about.instagram.com/blog/rss|rss|Instagram Blog
+DIGEST_SOURCES=                   # пусто = рабочие источники по умолчанию (Google News: Instagram + Моссери)
 DIGEST_CRON=0 9 * * 1
 ```
 
