@@ -1999,6 +1999,7 @@ async function sourcesSheet(){
       <div class="field"><label>НАЗВАНИЕ</label><input type="text" id="dsTitle" placeholder="Напр. Instagram — обновления"></div>
       <div class="field"><label>URL RSS-ленты</label><input type="text" id="dsUrl" placeholder="https://…/rss" inputmode="url"></div>
       <button class="btn-ghost" id="dsAdd" style="width:100%;margin-bottom:10px">Добавить в список</button>
+      <button class="btn-ghost" id="dsReset" style="width:100%;margin-bottom:10px">Вернуть рекомендуемые (Google News)</button>
       <button class="btn-primary" id="dsSave" style="width:100%">Сохранить и собрать дайджест</button>
       <p style="font-size:11.5px;color:var(--ink-3);padding:10px 2px 0;line-height:1.5">Совет: удобные ленты — Google News по запросу, напр.<br>
       <span style="word-break:break-all">https://news.google.com/rss/search?q=instagram+update&hl=ru&gl=RU&ceid=RU:ru</span></p>`;
@@ -2007,6 +2008,14 @@ async function sourcesSheet(){
       const url=$("#dsUrl").value.trim(),title=$("#dsTitle").value.trim();
       if(!/^https?:\/\//i.test(url)){toast("Укажите корректный URL (http/https)");return;}
       items.push({url,type:"rss",title:title||url,active:true});render();
+    });
+    $("#dsReset").addEventListener("click",()=>{
+      items=[
+        {url:"https://news.google.com/rss/search?q=instagram+update+OR+instagram+feature+OR+instagram+algorithm+when:14d&hl=en-US&gl=US&ceid=US:en",type:"rss",title:"Instagram — обновления",active:true},
+        {url:"https://news.google.com/rss/search?q=%22Adam+Mosseri%22+when:30d&hl=en-US&gl=US&ceid=US:en",type:"rss",title:"Adam Mosseri (глава Instagram)",active:true},
+        {url:"https://news.google.com/rss/search?q=instagram+reels+OR+instagram+stories+update+when:14d&hl=en-US&gl=US&ceid=US:en",type:"rss",title:"Reels и Stories",active:true}
+      ];
+      render();
     });
     $("#dsSave").addEventListener("click",async()=>{
       try{
