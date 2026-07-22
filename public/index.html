@@ -1876,7 +1876,13 @@ function drawDigest(){
   const body=$("#sheet2Body");
   body.innerHTML=`<div class="fbar" style="padding:0 0 8px" id="catBar"></div><div id="newsList"></div>`;
   const cb=$("#catBar");
-  CATS.forEach(c=>{
+  // Вкладки строим из реально присутствующих в дайджесте категорий (без пустых).
+  const present=[...new Set(NEWS.map(n=>n.cat).filter(Boolean))];
+  const ordered=CATS.filter(c=>c!=="Все"&&present.includes(c))
+    .concat(present.filter(c=>!CATS.includes(c)));
+  const tabs=["Все",...ordered];
+  if(newsCat!=="Все"&&!present.includes(newsCat))newsCat="Все";
+  tabs.forEach(c=>{
     const b=document.createElement("button");
     b.className="fsw"+(c===newsCat?" on":"");
     b.textContent=c;
