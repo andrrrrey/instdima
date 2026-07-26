@@ -174,6 +174,8 @@ body{font-family:'Onest',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
 .pc__thumb .play span{width:24px;height:24px;border-radius:50%;background:rgba(23,24,28,.5);display:flex;align-items:center;justify-content:center}
 .pc__thumb .play .i{width:10px;height:10px}
 .pc__thumb .dur{position:absolute;bottom:4px;right:4px;background:rgba(23,24,28,.62);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px}
+.pc__thumb .cntb{position:absolute;top:4px;right:4px;background:rgba(23,24,28,.62);color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:6px;display:flex;align-items:center;gap:2px}
+.pc__thumb .cntb .i{width:9px;height:9px}
 .pc__m{flex:1;min-width:0}
 .pc__r1{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
 .pill{font-size:10px;font-weight:800;letter-spacing:.03em;padding:3px 9px;border-radius:var(--r-pill);white-space:nowrap}
@@ -257,6 +259,26 @@ select{appearance:none;cursor:pointer}
 .uploader .up-ico .i{width:24px;height:24px}
 .uploader .up-txt{font-size:13px;color:var(--ink-2);font-weight:500}
 .uploader .up-txt b{display:block;color:var(--ink);font-size:14px;font-weight:700;margin-bottom:2px}
+/* галерея медиа (несколько фото/видео на публикацию) */
+.mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mtile{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--soft);cursor:zoom-in}
+.mtile img,.mtile video{width:100%;height:100%;object-fit:cover;display:block}
+.mtile .mdel{position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;line-height:1;padding:0}
+.mtile .mcover{position:absolute;top:5px;left:5px;background:var(--ink);color:#fff;font-size:10px;font-weight:800;letter-spacing:.2px;padding:2px 6px;border-radius:6px}
+.mtile .mstar{position:absolute;bottom:5px;left:5px;height:24px;padding:0 7px;border-radius:12px;background:rgba(0,0,0,.5);color:#fff;border:none;cursor:pointer;font-size:10px;font-weight:700;display:flex;align-items:center;gap:3px}
+.mtile .mvid{position:absolute;bottom:5px;right:5px;color:#fff;width:18px;height:18px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.madd{aspect-ratio:1;border:1.5px dashed #D6D7DD;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;background:var(--soft);color:var(--ink-2);font-size:11.5px;font-weight:700;text-align:center;padding:6px}
+.madd .i{width:22px;height:22px}
+.madd.busy{opacity:.6;pointer-events:none}
+.mcount{font-size:11.5px;color:var(--ink-3);font-weight:600;margin-top:8px}
+/* просмотрщик галереи */
+.gv{position:relative}
+.gv__nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;z-index:2}
+.gv__nav.prev{left:8px}.gv__nav.next{right:8px}
+.gv__dots{display:flex;justify-content:center;gap:6px;margin-top:12px;flex-wrap:wrap}
+.gv__dots i{width:7px;height:7px;border-radius:50%;background:var(--line);display:block}
+.gv__dots i.on{background:var(--ink)}
+.gv__cnt{text-align:center;font-size:12px;color:var(--ink-2);font-weight:700;margin-top:8px}
 .hint{font-size:11.5px;color:var(--ink-3);font-weight:500;margin-top:7px}
 .saved-hint{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--ink-3)}
 .saved-hint .i{width:13px;height:13px;stroke-width:2.6}
@@ -834,7 +856,7 @@ function ss(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 function seedPubs(){
   const d=n=>dkOf(addDays(today,n));
   const mk=(o)=>Object.assign({id:uid("p"),type:"post",time:"12:00",g:0,dur:null,text:"",alt:"",tags:[],
-    track:"",trackAt:"",media:null,comments:[],history:[],updated:nowStamp()},o);
+    track:"",trackAt:"",media:null,mediaList:[],comments:[],history:[],updated:nowStamp()},o);
   return[
     mk({title:"Летняя коллекция: новинки одежды",type:"post",date:d(0),time:"12:00",deadline:d(-1),status:"review",owner:"kira",g:0,
       comments:[{w:"eva",t:"Проверь порядок кадров на второй карточке",d:"вчера, 18:20"}],
@@ -1236,15 +1258,39 @@ function mediaFill(m){
   }
   return `<img src="${m.url}" style="width:100%;height:100%;object-fit:cover" alt="">`;
 }
-/* Полноэкранный просмотр медиа (видео с плеером / изображение). */
+/* Список медиа публикации (галерея); fallback — одиночная обложка. */
+function pubMediaList(p){
+  if(p&&Array.isArray(p.mediaList)&&p.mediaList.length)return p.mediaList.filter(m=>m&&m.url);
+  if(p&&p.media&&p.media.url)return [p.media];
+  return [];
+}
+/* Полноэкранный просмотр одного медиа. */
 function openMediaViewer(m){
   if(!m||!m.url){toast("Медиа не прикреплено");return;}
+  openGallery([m],0);
+}
+/* Полноэкранный просмотр галереи с перелистыванием. */
+function openGallery(list,start){
+  list=(list||[]).filter(x=>x&&x.url);
+  if(!list.length){toast("Медиа не прикреплено");return;}
+  let idx=Math.max(0,Math.min(start||0,list.length-1));
   $("#sheet2Title").textContent="Медиа";
   $("#sheet2Hint").textContent="";
   $("#sheet2Foot").style.display="none";
-  $("#sheet2Body").innerHTML=m.kind==="video"
-    ? `<video src="${m.url}" controls playsinline preload="metadata"${m.poster?` poster="${m.poster}"`:""} style="width:100%;max-height:72vh;border-radius:16px;background:#000;display:block"></video>`
-    : `<img src="${m.url}" style="width:100%;border-radius:16px;display:block" alt="">`;
+  const render=()=>{
+    const m=list[idx],multi=list.length>1;
+    const body=m.kind==="video"
+      ? `<video src="${m.url}" controls playsinline preload="metadata"${m.poster?` poster="${m.poster}"`:""} style="width:100%;max-height:66vh;border-radius:16px;background:#000;display:block"></video>`
+      : `<img src="${m.url}" style="width:100%;max-height:66vh;object-fit:contain;border-radius:16px;display:block" alt="">`;
+    const nav=multi?`<button type="button" class="gv__nav prev" id="gvPrev" aria-label="Назад">‹</button><button type="button" class="gv__nav next" id="gvNext" aria-label="Вперёд">›</button>`:"";
+    $("#sheet2Body").innerHTML=`<div class="gv">${body}${nav}</div>`+
+      (multi?`<div class="gv__cnt">${idx+1} / ${list.length}</div><div class="gv__dots">${list.map((_,i)=>`<i class="${i===idx?"on":""}"></i>`).join("")}</div>`:"");
+    if(multi){
+      $("#gvPrev").addEventListener("click",()=>{idx=(idx-1+list.length)%list.length;render();});
+      $("#gvNext").addEventListener("click",()=>{idx=(idx+1)%list.length;render();});
+    }
+  };
+  render();
   openSheet2();
 }
 
@@ -1270,6 +1316,7 @@ function pubCard(p,reason){
         ${mediaFill(p.media)}
         ${isV?`<span class="play"><span>${IC.play}</span></span>`:""}
         ${isV&&p.dur?`<span class="dur">${p.dur}</span>`:""}
+        ${(p.mediaList&&p.mediaList.length>1)?`<span class="cntb">${IC.dup}${p.mediaList.length}</span>`:""}
       </div>
       <div class="pc__m">
         <div class="pc__r1">
@@ -1287,7 +1334,7 @@ function pubCard(p,reason){
   if(p.media&&p.media.url){
     const th=el.querySelector(".pc__thumb");
     th.style.cursor="zoom-in";
-    th.addEventListener("click",e=>{e.stopPropagation();openMediaViewer(p.media);});
+    th.addEventListener("click",e=>{e.stopPropagation();openGallery(pubMediaList(p),0);});
   }
   const f=el.querySelector(".pc__foot");
   buildFoot(f,p);
@@ -1413,6 +1460,7 @@ function buildPubView(){
       <div class="pc__thumb" id="viewThumb" style="background:${grad(p.g)};width:88px;height:110px${p.media&&p.media.url?';cursor:zoom-in':''}">
         ${mediaFill(p.media)}
         ${p.type==="reels"?`<span class="play"><span>${IC.play}</span></span>`:""}
+        ${(p.mediaList&&p.mediaList.length>1)?`<span class="cntb">${IC.dup}${p.mediaList.length}</span>`:""}
       </div>
       <div class="pc__m">
         <div class="pc__r1"><span class="pill type">${T.s}</span>
@@ -1421,11 +1469,11 @@ function buildPubView(){
         <div class="pc__meta"><div>${IC.plan}Выход: <b>${fmtD(p.date)}, ${p.time}</b></div></div>
       </div>
     </div>
-    ${p.media&&p.media.url?`<button type="button" class="btn-ghost" id="viewMediaBtn" style="width:100%;margin:0 0 14px">${p.media.kind==="video"?"▶ Смотреть видео":"Открыть изображение"}</button>`:""}
+    ${p.media&&p.media.url?`<button type="button" class="btn-ghost" id="viewMediaBtn" style="width:100%;margin:0 0 14px">${p.mediaList&&p.mediaList.length>1?"Смотреть медиа ("+p.mediaList.length+")":(p.media.kind==="video"?"▶ Смотреть видео":"Открыть изображение")}</button>`:""}
     ${p.text?`<div class="blk"><h4>ТЕКСТ ПУБЛИКАЦИИ</h4><p style="margin:0;font-size:14px;line-height:1.5">${esc(p.text)}</p></div>`:""}`;
   if(p.media&&p.media.url){
-    $("#viewThumb").addEventListener("click",()=>openMediaViewer(p.media));
-    const vb=$("#viewMediaBtn");if(vb)vb.addEventListener("click",()=>openMediaViewer(p.media));
+    $("#viewThumb").addEventListener("click",()=>openGallery(pubMediaList(p),0));
+    const vb=$("#viewMediaBtn");if(vb)vb.addEventListener("click",()=>openGallery(pubMediaList(p),0));
   }
 }
 function buildPubForm(){
@@ -1437,13 +1485,10 @@ function buildPubForm(){
         <button data-type="reels" class="${p.type==="reels"?"on":""}"><span class="si">${IC.reels}</span>Reels</button>
       </div>
     </div>
-    <div class="field"><label>МЕДИА</label>
-      <label class="uploader" for="fFile">
-        <span class="up-ico" id="upIco">${p.media&&p.media.url?mediaFill(p.media):IC.post}</span>
-        <span class="up-txt"><b id="upT">${p.media&&p.media.url?"Заменить медиа":"Прикрепить медиа"}</b><span id="upS">Файл сохранится в карточке</span></span>
-      </label>
-      <input type="file" id="fFile" accept="image/*,video/*" hidden>
-      <button type="button" class="btn-ghost" id="viewMediaBtn" style="width:100%;margin-top:8px;display:${p.media&&p.media.url?"block":"none"}">${p.media&&p.media.kind==="video"?"▶ Смотреть видео":"Открыть изображение"}</button>
+    <div class="field"><label>МЕДИА <span class="opt">до 20 фото/видео</span></label>
+      <div class="mgrid" id="mGrid"></div>
+      <div class="mcount" id="mCount"></div>
+      <input type="file" id="fFile" accept="image/*,video/*" multiple hidden>
     </div>
     <div class="field"><label>НАЗВАНИЕ</label>
       <input type="text" id="fTitle" placeholder="Например: Летняя коллекция" value="${esc(p.title)}"></div>
@@ -1501,25 +1546,8 @@ function buildPubForm(){
   const fmtAt=v=>{const d=String(v).replace(/\D/g,"").slice(0,4);if(!d)return "";
     if(d.length<=2)return "0:"+d.padStart(2,"0");const s=d.slice(-2),m=d.slice(0,-2).replace(/^0+/,"")||"0";return m+":"+s;};
   at.addEventListener("input",()=>{at.value=fmtAt(at.value);p.trackAt=at.value;markSaved();});
-  const viewBtn=$("#viewMediaBtn");
-  if(viewBtn)viewBtn.addEventListener("click",()=>openMediaViewer(p.media));
-  $("#fFile").addEventListener("change",async e=>{
-    const f=e.target.files[0];if(!f)return;
-    const kind=f.type.startsWith("video")?"video":"image";
-    const url=URL.createObjectURL(f);
-    $("#upIco").innerHTML=mediaFill({kind,url});
-    $("#upT").textContent="Заменить медиа";
-    $("#sheetHint").innerHTML=`<span class="saved-hint">${IC.check} Загрузка медиа…</span>`;
-    try{
-      const fd=new FormData();fd.append("file",f);
-      const r=await API.form("/api/publications/"+p.id+"/media",fd);
-      replacePub(r);
-      if(p.media&&p.media.url)$("#upIco").innerHTML=mediaFill(p.media);
-      if(viewBtn){viewBtn.style.display="block";viewBtn.textContent=p.media&&p.media.kind==="video"?"▶ Смотреть видео":"Открыть изображение";}
-      $("#sheetHint").innerHTML=`<span class="saved-hint">${IC.check} Медиа загружено</span>`;
-      toast("Медиа загружено");
-    }catch(err){toast("Не удалось загрузить медиа");$("#sheetHint").innerHTML=`<span class="saved-hint">Не сохранено</span>`;}
-  });
+  renderMediaGrid();
+  $("#fFile").addEventListener("change",e=>{const files=[...e.target.files];e.target.value="";uploadMedia(files);});
   drawCmt();drawHist();
   $("#cmtAdd").addEventListener("click",async()=>{
     const v=$("#cmtIn").value.trim();if(!v)return;
@@ -1527,6 +1555,72 @@ function buildPubForm(){
     try{const r=await API.post("/api/publications/"+p.id+"/comments",{text:v});replacePub(r);drawCmt();}
     catch(e){toast("Не удалось добавить комментарий");}
   });
+}
+/* Синхронизировать сегмент «тип» с cur.type (бэкенд мог выставить reels). */
+function syncTypeSeg(){
+  document.querySelectorAll("#tSeg button").forEach(x=>x.classList.toggle("on",x.dataset.type===cur.type));
+}
+/* Сетка галереи в форме редактирования: превью, удаление, выбор обложки, добавление. */
+function renderMediaGrid(){
+  const p=cur,grid=$("#mGrid");if(!grid)return;
+  const list=pubMediaList(p),canAdd=list.length<20;
+  grid.innerHTML=list.map((m,i)=>`
+    <div class="mtile" data-i="${i}">
+      ${mediaFill(m)}
+      ${i===0?`<span class="mcover">Обложка</span>`:""}
+      ${m.kind==="video"?`<span class="mvid">${IC.play}</span>`:""}
+      <button type="button" class="mdel" data-mid="${esc(m.id||"")}" aria-label="Удалить">&times;</button>
+      ${i!==0?`<button type="button" class="mstar" data-mid="${esc(m.id||"")}">★ обложка</button>`:""}
+    </div>`).join("")
+    +(canAdd?`<div class="madd" id="mAdd">${IC.plus}<span>Добавить</span></div>`:"");
+  $("#mCount").textContent=list.length?`${list.length} из 20`:"Пока нет медиа — добавьте фото или видео (можно несколько сразу).";
+  grid.querySelectorAll(".mtile").forEach(t=>t.addEventListener("click",e=>{
+    if(e.target.closest(".mdel")||e.target.closest(".mstar"))return;
+    openGallery(list,Number(t.dataset.i)||0);
+  }));
+  grid.querySelectorAll(".mdel").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();delMedia(b.dataset.mid);}));
+  grid.querySelectorAll(".mstar").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();makeCover(b.dataset.mid);}));
+  const add=$("#mAdd");if(add)add.addEventListener("click",()=>$("#fFile").click());
+}
+/* Массовая загрузка выбранных файлов (до 20 суммарно). */
+async function uploadMedia(files){
+  files=(files||[]).filter(Boolean);if(!files.length)return;
+  const p=cur,room=20-pubMediaList(p).length;
+  if(room<=0){toast("Достигнут лимит 20 файлов");return;}
+  const send=files.slice(0,room),overflow=files.length-send.length;
+  const add=$("#mAdd");if(add){add.classList.add("busy");add.innerHTML="<span>Загрузка…</span>";}
+  $("#sheetHint").innerHTML=`<span class="saved-hint">${IC.check} Загрузка медиа…</span>`;
+  try{
+    const fd=new FormData();send.forEach(f=>fd.append("file",f));
+    const r=await API.form("/api/publications/"+p.id+"/media",fd);
+    replacePub(r);renderMediaGrid();syncTypeSeg();refreshView();
+    $("#sheetHint").innerHTML=`<span class="saved-hint">${IC.check} Медиа загружено</span>`;
+    if(overflow||r._skipped)toast("Часть файлов не влезла — лимит 20");
+    else toast(send.length>1?`Загружено файлов: ${send.length}`:"Медиа загружено");
+  }catch(err){
+    toast("Не удалось загрузить медиа");
+    $("#sheetHint").innerHTML=`<span class="saved-hint">Не сохранено</span>`;
+    renderMediaGrid();
+  }
+}
+/* Удалить одно медиа из галереи. */
+async function delMedia(mid){
+  if(!mid)return;
+  try{
+    const r=await API.del("/api/publications/"+cur.id+"/media/"+mid);
+    replacePub(r);renderMediaGrid();syncTypeSeg();refreshView();
+    toast("Медиа удалено");
+  }catch(e){toast("Не удалось удалить медиа");}
+}
+/* Сделать выбранное медиа обложкой (переместить в начало галереи). */
+async function makeCover(mid){
+  if(!mid)return;
+  const order=[mid,...pubMediaList(cur).map(m=>m.id).filter(x=>x&&x!==mid)];
+  try{
+    const r=await API.patch("/api/publications/"+cur.id+"/media",{order});
+    replacePub(r);renderMediaGrid();refreshView();
+    toast("Обложка обновлена");
+  }catch(e){toast("Не удалось изменить порядок");}
 }
 function drawCmt(){
   const box=$("#cmtList");if(!box)return;
