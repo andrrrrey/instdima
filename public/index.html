@@ -1442,8 +1442,10 @@ async function openPub(id,dateOverride){
   if(id){cur=pubs.find(p=>p.id===id);}
   else{
     const dt=dateOverride||selDate;
+    // Новая публикация: и дата выхода, и дедлайн по умолчанию — текущий день,
+    // чтобы нативный календарь открывался на сегодня, а не на «вчера».
     try{
-      cur=await API.post("/api/publications",{title:"",type:"post",date:dt,time:"12:00",deadline:dkOf(addDays(parse(dt),-1))});
+      cur=await API.post("/api/publications",{title:"",type:"post",date:dt,time:"12:00",deadline:TK});
       pubs.push(cur);
     }catch(e){toast("Не удалось создать публикацию");return;}
   }
