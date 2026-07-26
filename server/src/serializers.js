@@ -46,6 +46,13 @@ function stamp(date) {
 
 // Публикация под конкретного пользователя (роль решает состав полей).
 export function serializePublication(pub, viewer) {
+  // Галерея: несколько медиа с сохранением порядка. Обложка (media) —
+  // первый элемент; поле оставлено для обратной совместимости с фронтендом.
+  const mediaList = (pub.mediaItems || [])
+    .map((pm) => serializeMedia(pm.media))
+    .filter(Boolean);
+  const cover = mediaList[0] || serializeMedia(pub.media);
+
   const base = {
     id: pub.id,
     title: pub.title,
@@ -56,7 +63,8 @@ export function serializePublication(pub, viewer) {
     g: pub.g,
     dur: pub.dur,
     text: pub.text,
-    media: serializeMedia(pub.media),
+    media: cover,
+    mediaList,
   };
 
   // Дмитрий (заказчик): без ответственного, дедлайна, просрочки,

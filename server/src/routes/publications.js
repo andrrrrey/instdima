@@ -18,8 +18,11 @@ import {
   isMaker,
 } from '../permissions.js';
 
+const MAX_MEDIA = 20; // максимум медиа в одной публикации
+
 const INCLUDE = {
   media: true,
+  mediaItems: { include: { media: true }, orderBy: { pos: 'asc' } },
   owner: true,
   comments: { orderBy: { createdAt: 'asc' } },
   history: { orderBy: { createdAt: 'desc' } },
@@ -212,6 +215,10 @@ export default async function publicationRoutes(app) {
         status: 'draft', ownerId: pub.ownerId, g: pub.g, dur: pub.dur,
         text: pub.text, alt: pub.alt, tags: pub.tags, track: pub.track, trackAt: pub.trackAt,
         mediaId: pub.mediaId,
+        // Переносим всю галерею (ссылки на те же медиа, порядок сохраняем).
+        mediaItems: {
+          create: (pub.mediaItems || []).map((pm) => ({ mediaId: pm.mediaId, pos: pm.pos })),
+        },
       },
       include: INCLUDE,
     });
@@ -237,18 +244,12 @@ export default async function publicationRoutes(app) {
     return { ok: true };
   });
 
-  // Загрузка медиа (пост — изображение, Reels — видео).
-  app.post('/api/publications/:id/media', async (req, reply) => {
-    const pub = await loadPub(req.params.id);
-    if (!pub) return reply.code(404).send({ error: 'not_found' });
-    if (!canEditPub(req.user, pub)) return reply.code(403).send({ error: 'forbidden' });
-
-    const file = await req.file();
-    if (!file) return reply.code(400).send({ error: 'no_file' });
+  // Сохранить один загруженный файл в хранилище + создать запись Media.
+  async function storeMediaFile(pubId, file, req) {
     const buffer = await file.toBuffer();
     const kind = file.mimetype.startsWith('video') ? 'video' : 'image';
     const ext = (file.filename?.split('.').pop() || (kind === 'video' ? 'mp4' : 'jpg')).toLowerCase();
-    const key = `pub/${pub.id}/${Date.now()}.${ext}`;
+    const key = `pub/${pubId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     await putObject(key, buffer, file.mimetype);
 
     // Для видео извлекаем кадр-постер (надёжное превью на iOS).
@@ -256,20 +257,126 @@ export default async function publicationRoutes(app) {
     if (kind === 'video') {
       try {
         const frame = await extractFrame(buffer, 1);
-        framePath = `pub/${pub.id}/poster-${Date.now()}.jpg`;
+        framePath = `pub/${pubId}/poster-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
         await putObject(framePath, frame, 'image/jpeg');
       } catch (e) {
         req.log?.warn?.(`poster extract failed: ${e.message}`);
       }
     }
 
-    const media = await prisma.media.create({
+    return prisma.media.create({
       data: { kind, path: key, mime: file.mimetype, size: buffer.length, framePath },
     });
-    await prisma.publication.update({
-      where: { id: pub.id },
-      data: { mediaId: media.id, type: kind === 'video' ? 'reels' : pub.type },
+  }
+
+  // Пересчитать обложку/тип публикации по актуальному составу галереи.
+  async function syncPubCover(pubId) {
+    const items = await prisma.publicationMedia.findMany({
+      where: { publicationId: pubId },
+      include: { media: true },
+      orderBy: { pos: 'asc' },
     });
+    const cover = items[0] || null;
+    const data = { mediaId: cover ? cover.mediaId : null };
+    // Одиночное видео → Reels; всё остальное (пусто/фото/карусель) оставляем как есть,
+    // но если было одиночное видео и добавили ещё — это уже карусель-пост.
+    if (items.length === 1 && cover.media?.kind === 'video') data.type = 'reels';
+    await prisma.publication.update({ where: { id: pubId }, data });
+  }
+
+  // Загрузка медиа: один или несколько файлов (фото/видео), до 20 на публикацию.
+  app.post('/api/publications/:id/media', async (req, reply) => {
+    const pub = await loadPub(req.params.id);
+    if (!pub) return reply.code(404).send({ error: 'not_found' });
+    if (!canEditPub(req.user, pub)) return reply.code(403).send({ error: 'forbidden' });
+
+    const existing = pub.mediaItems || [];
+    let remaining = MAX_MEDIA - existing.length;
+    if (remaining <= 0) return reply.code(400).send({ error: 'media_limit', max: MAX_MEDIA });
+
+    let pos = existing.length ? Math.max(...existing.map((m) => m.pos)) + 1 : 0;
+    let added = 0;
+    let skipped = 0;
+    let sawFile = false;
+
+    // req.files() — асинхронный итератор по всем файлам multipart-запроса.
+    // Важно вычитать поток каждого файла (toBuffer), даже если лимит исчерпан.
+    for await (const file of req.files()) {
+      sawFile = true;
+      if (remaining <= 0) {
+        skipped += 1;
+        await file.toBuffer().catch(() => {});
+        continue;
+      }
+      const media = await storeMediaFile(pub.id, file, req);
+      await prisma.publicationMedia.create({
+        data: { publicationId: pub.id, mediaId: media.id, pos },
+      });
+      pos += 1;
+      remaining -= 1;
+      added += 1;
+    }
+
+    if (!sawFile) return reply.code(400).send({ error: 'no_file' });
+    if (added === 0 && skipped > 0) return reply.code(400).send({ error: 'media_limit', max: MAX_MEDIA });
+
+    await syncPubCover(pub.id);
+    const fresh = await loadPub(pub.id);
+    const out = serializePublication(fresh, req.user);
+    if (skipped > 0) out._skipped = skipped; // клиент покажет, что часть файлов не влезла
+    return out;
+  });
+
+  // Удалить одно медиа из галереи публикации.
+  app.delete('/api/publications/:id/media/:mediaId', async (req, reply) => {
+    const pub = await loadPub(req.params.id);
+    if (!pub) return reply.code(404).send({ error: 'not_found' });
+    if (!canEditPub(req.user, pub)) return reply.code(403).send({ error: 'forbidden' });
+
+    const item = (pub.mediaItems || []).find((m) => m.mediaId === req.params.mediaId);
+    if (!item) return reply.code(404).send({ error: 'media_not_found' });
+
+    await prisma.publicationMedia.delete({ where: { id: item.id } });
+    // Нормализуем позиции оставшихся элементов (0..n-1).
+    const rest = (pub.mediaItems || [])
+      .filter((m) => m.id !== item.id)
+      .sort((a, b) => a.pos - b.pos);
+    await Promise.all(
+      rest.map((m, i) => (m.pos === i
+        ? null
+        : prisma.publicationMedia.update({ where: { id: m.id }, data: { pos: i } }))),
+    );
+    await syncPubCover(pub.id);
+    const fresh = await loadPub(pub.id);
+    return serializePublication(fresh, req.user);
+  });
+
+  // Изменить порядок медиа в галерее (первое = обложка).
+  app.patch('/api/publications/:id/media', async (req, reply) => {
+    const pub = await loadPub(req.params.id);
+    if (!pub) return reply.code(404).send({ error: 'not_found' });
+    if (!canEditPub(req.user, pub)) return reply.code(403).send({ error: 'forbidden' });
+
+    const order = Array.isArray(req.body?.order) ? req.body.order.map(String) : null;
+    if (!order) return reply.code(400).send({ error: 'bad_request' });
+
+    const byMediaId = new Map((pub.mediaItems || []).map((m) => [m.mediaId, m]));
+    let pos = 0;
+    const updates = [];
+    for (const mid of order) {
+      const item = byMediaId.get(mid);
+      if (!item) continue;
+      updates.push(prisma.publicationMedia.update({ where: { id: item.id }, data: { pos } }));
+      byMediaId.delete(mid);
+      pos += 1;
+    }
+    // Не упомянутые в order — в конец, сохраняя относительный порядок.
+    for (const item of [...byMediaId.values()].sort((a, b) => a.pos - b.pos)) {
+      updates.push(prisma.publicationMedia.update({ where: { id: item.id }, data: { pos } }));
+      pos += 1;
+    }
+    await Promise.all(updates);
+    await syncPubCover(pub.id);
     const fresh = await loadPub(pub.id);
     return serializePublication(fresh, req.user);
   });

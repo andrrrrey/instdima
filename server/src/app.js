@@ -24,7 +24,10 @@ export async function buildApp() {
   });
 
   await app.register(fastifyMultipart, {
-    limits: { fileSize: 200 * 1024 * 1024 }, // до 200 МБ на видео Reels
+    limits: {
+      fileSize: 200 * 1024 * 1024, // до 200 МБ на видео Reels
+      files: 20, // массовая загрузка галереи: до 20 файлов за один запрос
+    },
   });
 
   // Пустое тело при content-type: application/json трактуем как {} —

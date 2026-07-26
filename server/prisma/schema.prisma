@@ -85,8 +85,11 @@ model Media {
   framePath String?   @map("frame_path") // кадр, извлечённый из видео (для vision)
   createdAt DateTime  @default(now()) @map("created_at")
 
-  publications Publication[]
-  ideas        Idea[]
+  // Обложка публикации (первое медиа) — обратная связь для Publication.media.
+  coverOf  Publication[]      @relation("PubCover")
+  // Позиции в галереях публикаций (много медиа на одну публикацию).
+  pubItems PublicationMedia[]
+  ideas    Idea[]
 
   @@map("media")
 }
@@ -108,19 +111,36 @@ model Publication {
   tags      Json      @default("[]")
   track     String    @default("")
   trackAt   String    @default("") @map("track_at")
-  media     Media?    @relation(fields: [mediaId], references: [id])
+  // Обложка публикации (первое медиа галереи) — для обратной совместимости.
+  media     Media?    @relation("PubCover", fields: [mediaId], references: [id])
   mediaId   String?   @map("media_id")
   late      Boolean   @default(false) // опубликовано с просрочкой
   archived  Boolean   @default(false)
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
-  comments PublicationComment[]
-  history  PublicationHistory[]
+  // Галерея публикации: несколько фото/видео (до 20), с порядком.
+  mediaItems PublicationMedia[]
+  comments   PublicationComment[]
+  history    PublicationHistory[]
 
   @@index([date])
   @@index([status])
   @@map("publications")
+}
+
+// Связка публикация↔медиа: галерея из нескольких файлов с сохранением порядка.
+model PublicationMedia {
+  id            String      @id @default(cuid())
+  publication   Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  publicationId String      @map("pub_id")
+  media         Media       @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  mediaId       String      @map("media_id")
+  pos           Int         @default(0) // порядок в галерее (0 — обложка)
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  @@index([publicationId])
+  @@map("publication_media")
 }
 
 model PublicationComment {
