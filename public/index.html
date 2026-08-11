@@ -1487,6 +1487,7 @@ function buildPubForm(){
         <button data-type="reels" class="${p.type==="reels"?"on":""}"><span class="si">${IC.reels}</span>Reels</button>
       </div>
     </div>
+    <div class="field" id="fStatusWrap">${statusFieldHTML(p)}</div>
     <div class="field"><label>МЕДИА <span class="opt">до 20 фото/видео</span></label>
       <div class="mgrid" id="mGrid"></div>
       <div class="mcount" id="mCount"></div>
@@ -1540,6 +1541,7 @@ function buildPubForm(){
   $("#fDl").addEventListener("change",()=>{const v=$("#fDl").value;
     if(v!==p.deadline)logH(p,ROLES[role].name+": дедлайн "+(p.deadline?fmtD(p.deadline):"—")+" → "+(v?fmtD(v):"—"));
     p.deadline=v;markSaved();});
+  bindStatusField();
   const ow=$("#fOwner");
   if(ow)ow.addEventListener("change",()=>{
     const v=ow.value;if(v!==p.owner)logH(p,"Ева: ответственный "+(p.owner?PEOPLE[p.owner].n:"никто")+" → "+(v?PEOPLE[v].n:"никто"));
@@ -1663,6 +1665,43 @@ function buildPubFoot(){
         ()=>{setStatus(p,"canceled","Ева архивировала");closeSheet();renderPlan();toast("В архиве");}));
       B("Сохранить","btn-primary",()=>{markSaved();closeSheet();renderPlan();toast("Сохранено");});
     }
+  }
+}
+/* Статусы, на которые текущая роль может перевести публикацию (зеркало серверных прав). */
+function statusChoices(p){
+  if(isEva())return ["draft","work","review","fixes","ready","published","canceled"];
+  if(isMaker()){
+    if(p.owner!==me())return [p.status];
+    const map={draft:["work"],work:["review"],fixes:["review"],ready:["published"]};
+    return [p.status,...(map[p.status]||[])].filter((v,i,a)=>a.indexOf(v)===i);
+  }
+  return [p.status];
+}
+/* Разметка поля «Статус» (пересобирается при смене статуса — набор переходов меняется). */
+function statusFieldHTML(p){
+  const ch=statusChoices(p),locked=ch.length<2;
+  return `<label>СТАТУС ПУБЛИКАЦИИ</label>
+    <select id="fStatus"${locked?" disabled":""}>
+      ${ch.map(k=>`<option value="${k}"${k===p.status?" selected":""}>${ST[k].t}</option>`).join("")}
+    </select>
+    <div class="hint">${locked?"Смена статуса недоступна для этой публикации.":"Этап работы над публикацией."}</div>`;
+}
+function bindStatusField(){
+  const st=$("#fStatus");
+  if(st)st.addEventListener("change",()=>changePubStatus(st.value));
+}
+/* Прямая смена статуса из формы: шлём на бэкенд, он проверяет допустимость перехода. */
+async function changePubStatus(st){
+  const p=cur;if(!p||!p.id||st===p.status)return;
+  try{
+    const r=await API.post("/api/publications/"+p.id+"/status",{status:st});
+    replacePub(r);
+    toast("Статус: "+ST[st].t);
+    const w=$("#fStatusWrap");if(w){w.innerHTML=statusFieldHTML(cur);bindStatusField();}
+    buildPubFoot();drawHist();refreshView();
+  }catch(e){
+    toast(e.status===403?"Такой переход статуса недоступен":"Не удалось изменить статус");
+    const w=$("#fStatusWrap");if(w){w.innerHTML=statusFieldHTML(p);bindStatusField();}
   }
 }
 
