@@ -4,6 +4,7 @@
 import { Bot } from 'grammy';
 import { config } from '../config.js';
 import { prisma } from '../db.js';
+import { prefEnabled } from '../util/notifyPrefs.js';
 
 let botRef = null;
 
@@ -46,6 +47,13 @@ async function send(telegramId, text) {
   }
 }
 
+// Отправка пользователю с учётом его персональных настроек уведомлений.
+async function sendTo(user, key, text) {
+  if (!user || !user.active) return;
+  if (!prefEnabled(user, key)) return;
+  await send(user.telegramId, text);
+}
+
 async function owners() {
   return prisma.user.findMany({ where: { role: 'owner', active: true } });
 }
@@ -62,8 +70,8 @@ export async function notifyStatusChange(pub, actor, newStatus) {
     const list = await owners();
     for (const o of list) {
       if (o.id === actor?.id) continue;
-      await send(
-        o.telegramId,
+      await sendTo(
+        o, 'approval',
         `🔔 <b>Нужно согласование</b>\n«${title}» — ${who} отправил(а) на согласование.`,
       );
     }
@@ -73,12 +81,10 @@ export async function notifyStatusChange(pub, actor, newStatus) {
   if ((newStatus === 'ready' || newStatus === 'fixes') && pub.ownerId && pub.ownerId !== actor?.id) {
     // Решение владельца — уведомляем ответственного за публикацию.
     const owner = await prisma.user.findUnique({ where: { id: pub.ownerId } });
-    if (owner && owner.active) {
-      const msg = newStatus === 'ready'
-        ? `✅ <b>Согласовано</b>\n«${title}» — ${who} согласовал(а). Можно публиковать.`
-        : `✏️ <b>Вернули на правки</b>\n«${title}» — ${who} вернул(а) на правки.`;
-      await send(owner.telegramId, msg);
-    }
+    const msg = newStatus === 'ready'
+      ? `✅ <b>Согласовано</b>\n«${title}» — ${who} согласовал(а). Можно публиковать.`
+      : `✏️ <b>Вернули на правки</b>\n«${title}» — ${who} вернул(а) на правки.`;
+    await sendTo(owner, 'approval', msg);
   }
 }
 
@@ -101,8 +107,8 @@ export async function notifyComment(pub, actor, text) {
   for (const o of await owners()) push(o);
 
   for (const u of recipients) {
-    await send(
-      u.telegramId,
+    await sendTo(
+      u, 'comments',
       `💬 <b>Новый комментарий</b>\n«${title}» — ${who}:\n${snippet}`,
     );
   }

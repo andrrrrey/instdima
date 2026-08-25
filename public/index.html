@@ -591,6 +591,9 @@ const API={
 };
 const SRV2ROLE={owner:"eva",maker:"maker",customer:"dmitry",fashion:"fashion"};
 let ME_ID=null,TEAM=[],CAPS={};
+// Персональные настройки уведомлений (с сервера, /api/bootstrap → notifyPrefs).
+const NOTIF_DEFAULTS={deadline:true,digest:true,approval:true,comments:true,published:false};
+let NOTIF_PREFS={...NOTIF_DEFAULTS};
 function qparam(n){try{return new URLSearchParams(location.search).get(n);}catch(e){return null;}}
 
 /* Опции ответственного из реальной команды (владелец/мейкеры). */
@@ -656,6 +659,7 @@ function applyIdentity(b){
   rights=b.user.rights||{createPub:false,seeAll:false,createTask:false};
   role=SRV2ROLE[b.user.role]||"eva";
   IS_SUPER=!!b.superadmin;REAL_UID=b.realUserId||b.user.id;
+  if(b.notifyPrefs)NOTIF_PREFS={...NOTIF_DEFAULTS,...b.notifyPrefs};
   ROLES[role].who=ME_ID;ROLES[role].name=b.user.name;
   PEOPLE[ME_ID]=PEOPLE[ME_ID]||{n:b.user.name,i:b.user.initials,c:b.user.color};
 }
@@ -2306,24 +2310,43 @@ function teamSheet(){
     }catch(e){toast(e.status===409?"Такой участник уже есть":"Не удалось добавить");}
   });
 }
-const S_NOTIF="cp_notif_v1";
+// Настройки уведомлений хранятся на сервере (per-user). Ключи стабильны,
+// подписи — здесь. NOTIF_PREFS заполняется из /api/bootstrap (applyIdentity).
+function notifCatalog(){
+  return isDm()
+    ?[["digest","Дайджест новостей","Раз в неделю"],
+      ["published","Публикация вышла","Когда пост опубликован"]]
+    :[["deadline","Напоминание о дедлайне","За день до срока"],
+      ["digest","Дайджест новостей","Раз в неделю"],
+      ["approval","Согласование","Когда нужно решение"],
+      ["comments","Комментарии","Ответы в карточках"]];
+}
+async function setNotifPref(key,val){
+  const prev=NOTIF_PREFS[key];
+  NOTIF_PREFS[key]=val;
+  try{
+    const r=await API.patch("/api/notify-prefs",{[key]:val});
+    if(r&&r.prefs)NOTIF_PREFS={...NOTIF_DEFAULTS,...r.prefs};
+    return true;
+  }catch(e){
+    NOTIF_PREFS[key]=prev;
+    toast("Не удалось сохранить");
+    return false;
+  }
+}
 function notifSheet(){
-  const items=isDm()?[["Дайджест новостей","Раз в неделю",true],["Публикация вышла","Когда пост опубликован",false]]
-    :[["Напоминание о дедлайне","За день до срока",true],["Дайджест новостей","Раз в неделю",true],
-      ["Согласование","Когда нужно решение",isEva()],["Комментарии","Ответы в карточках",true]];
-  // Состояние переключателей сохраняем локально, чтобы не сбрасывалось.
-  const saved=ls(S_NOTIF,{})||{};
+  const items=notifCatalog();
   sheet2Simple("Уведомления","",
-    `<div class="rows" style="margin:0">${items.map(([t,s,on])=>{
-      const val=(t in saved)?!!saved[t]:on;
+    `<div class="rows" style="margin:0">${items.map(([k,t,s])=>{
+      const val=(k in NOTIF_PREFS)?!!NOTIF_PREFS[k]:!!NOTIF_DEFAULTS[k];
       return `<div class="row" style="cursor:default">
-      <span class="ri">${IC.bell}</span><span class="rm"><b>${t}</b><span>${s}</span></span>
-      <button class="sw${val?" on":""}" data-k="${esc(t)}"></button></div>`;}).join("")}</div>`);
-  $("#sheet2Body").querySelectorAll(".sw").forEach(s=>s.addEventListener("click",()=>{
-    s.classList.toggle("on");
-    const cur=ls(S_NOTIF,{})||{};
-    cur[s.dataset.k]=s.classList.contains("on");
-    ss(S_NOTIF,cur);
+      <span class="ri">${IC.bell}</span><span class="rm"><b>${esc(t)}</b><span>${esc(s)}</span></span>
+      <button class="sw${val?" on":""}" data-k="${esc(k)}"></button></div>`;}).join("")}</div>`);
+  $("#sheet2Body").querySelectorAll(".sw").forEach(sw=>sw.addEventListener("click",async()=>{
+    const key=sw.dataset.k,next=!sw.classList.contains("on");
+    sw.classList.toggle("on",next);
+    const ok=await setNotifPref(key,next);
+    if(!ok)sw.classList.toggle("on",!next); // откат при ошибке
   }));
 }
 function archSheet(list,title){

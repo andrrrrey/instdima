@@ -61,6 +61,8 @@ model User {
   role       Role     @default(maker)
   // права контент-мейкера: { createPub, seeAll, createTask }
   rights     Json     @default("{\"createPub\":false,\"seeAll\":false,\"createTask\":false}")
+  // персональные настройки уведомлений: { deadline, digest, approval, comments, published }
+  notifyPrefs Json    @default("{}") @map("notify_prefs")
   active     Boolean  @default(true)
   // суперадмин: полный доступ + «просмотр от имени» любой роли
   superadmin Boolean  @default(false)
