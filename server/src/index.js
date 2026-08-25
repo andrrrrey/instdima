@@ -2,6 +2,7 @@
 import { config } from './config.js';
 import { buildApp } from './app.js';
 import { createBot, setupBotMenu } from './bot.js';
+import { setNotifyBot } from './services/notify.js';
 import { scheduleDigestCron } from './queue.js';
 
 async function main() {
@@ -10,6 +11,7 @@ async function main() {
   // Telegram-бот
   const bot = createBot();
   if (bot) {
+    setNotifyBot(bot); // уведомления о согласовании идут через этот же инстанс
     await setupBotMenu(bot);
     if (config.telegram.useWebhook) {
       // webhook-режим: Telegram шлёт апдейты на /api/tg/webhook
