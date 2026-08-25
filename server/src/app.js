@@ -13,6 +13,7 @@ import publicationRoutes from './routes/publications.js';
 import ideaRoutes from './routes/ideas.js';
 import digestRoutes from './routes/digest.js';
 import userRoutes from './routes/users.js';
+import notifyRoutes from './routes/notify.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -51,6 +52,7 @@ export async function buildApp() {
   await app.register(ideaRoutes);
   await app.register(digestRoutes);
   await app.register(userRoutes);
+  await app.register(notifyRoutes);
 
   app.get('/api/health', async () => ({ ok: true, ts: Date.now() }));
 

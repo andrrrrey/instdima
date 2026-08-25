@@ -6,6 +6,7 @@ import { signSession, authGuard } from '../auth/session.js';
 import { initialsFrom, colorFor } from '../util/format.js';
 import { serializeUserPublic, peopleMap } from '../serializers.js';
 import { planTabsFor, canCreatePub, canSeeAll, canManageUsers } from '../permissions.js';
+import { resolvePrefs } from '../util/notifyPrefs.js';
 
 async function loadTeam() {
   return prisma.user.findMany({ where: { active: true }, orderBy: { createdAt: 'asc' } });
@@ -103,6 +104,7 @@ export default async function authRoutes(app) {
       realUserId: req.realUser?.id,
       people: peopleMap(team),
       team: team.map(serializeUserPublic),
+      notifyPrefs: resolvePrefs(req.user),
     };
   });
 

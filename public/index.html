@@ -591,6 +591,9 @@ const API={
 };
 const SRV2ROLE={owner:"eva",maker:"maker",customer:"dmitry",fashion:"fashion"};
 let ME_ID=null,TEAM=[],CAPS={};
+// Персональные настройки уведомлений (с сервера, /api/bootstrap → notifyPrefs).
+const NOTIF_DEFAULTS={deadline:true,digest:true,approval:true,comments:true,published:false};
+let NOTIF_PREFS={...NOTIF_DEFAULTS};
 function qparam(n){try{return new URLSearchParams(location.search).get(n);}catch(e){return null;}}
 
 /* Опции ответственного из реальной команды (владелец/мейкеры). */
@@ -656,6 +659,7 @@ function applyIdentity(b){
   rights=b.user.rights||{createPub:false,seeAll:false,createTask:false};
   role=SRV2ROLE[b.user.role]||"eva";
   IS_SUPER=!!b.superadmin;REAL_UID=b.realUserId||b.user.id;
+  if(b.notifyPrefs)NOTIF_PREFS={...NOTIF_DEFAULTS,...b.notifyPrefs};
   ROLES[role].who=ME_ID;ROLES[role].name=b.user.name;
   PEOPLE[ME_ID]=PEOPLE[ME_ID]||{n:b.user.name,i:b.user.initials,c:b.user.color};
 }
@@ -843,8 +847,32 @@ function openSheet(){$("#scrim").classList.add("show");$("#sheet").classList.add
 function closeSheet(){$("#scrim").classList.remove("show");$("#sheet").classList.remove("show");}
 function openSheet2(){$("#scrim2").classList.add("show");$("#sheet2").classList.add("show");}
 function closeSheet2(){$("#scrim2").classList.remove("show");$("#sheet2").classList.remove("show");}
-$("#sheetX").addEventListener("click",closeSheet);
-$("#scrim").addEventListener("click",closeSheet);
+// Пустая только что созданная публикация не должна оставаться в базе,
+// если её закрыли, ничего не заполнив (иначе появляются «неудаляемые» пустышки).
+function pubIsBlank(p){
+  return !!p && !((p.title||"").trim()) && !((p.text||"").trim()) && !((p.alt||"").trim())
+    && !(Array.isArray(p.mediaList)&&p.mediaList.length) && !(p.media&&p.media.url)
+    && !(Array.isArray(p.tags)&&p.tags.length) && !((p.track||"").trim())
+    && (!p.status||p.status==="draft");
+}
+async function discardEmptyNewPub(){
+  const p=cur;
+  if(!curIsNew||!p||!p.id){curIsNew=false;return false;}
+  curIsNew=false;
+  if(!pubIsBlank(p))return false;
+  clearTimeout(saveTimer);
+  const id=p.id;
+  pubs=pubs.filter(x=>x.id!==id);
+  cur=null;
+  try{await API.del("/api/publications/"+id);}catch(e){}
+  return true;
+}
+function closePubSheet(){
+  discardEmptyNewPub().then(removed=>{if(removed)renderPlan();});
+  closeSheet();
+}
+$("#sheetX").addEventListener("click",closePubSheet);
+$("#scrim").addEventListener("click",closePubSheet);
 $("#sheet2X").addEventListener("click",closeSheet2);
 $("#scrim2").addEventListener("click",closeSheet2);
 
@@ -1190,15 +1218,15 @@ function renderCal(B){
   const L=visiblePubs().filter(p=>p.date===selDate).sort((a,b)=>a.time.localeCompare(b.time));
   const box=$("#dayList");
   if(!L.length){
-    box.innerHTML=emptyBox("На этот день пусто",canCreatePub()?"Нажмите на дату или кнопку «Публикация», чтобы запланировать.":"Публикаций не запланировано.");
+    box.innerHTML=emptyBox("На этот день пусто",canCreatePub()?"Нажмите кнопку «Публикация», чтобы запланировать.":"Публикаций не запланировано.");
     return;
   }
   L.forEach(p=>box.appendChild(pubCard(p)));
 }
 function tapDate(dk){
-  const has=visiblePubs().some(p=>p.date===dk);
+  // Тап по дате только выбирает день. Публикация создаётся явно —
+  // кнопкой «Публикация», чтобы случайный тап не плодил пустые посты.
   selDate=dk;
-  if(!has&&canCreatePub()){renderPlan();openPub(null,dk);return;}
   renderPlan();
 }
 function drawWeek(){
@@ -1381,7 +1409,8 @@ function popFor(anchor,p){
   it.push({t:"Дублировать",ic:IC.dup,f:async()=>{
     try{const c=await API.post("/api/publications/"+p.id+"/duplicate");pubs.push(c);renderPlan();toast("Дубликат создан");}
     catch(e){toast("Не удалось дублировать");}}});
-  if(isEva())it.push({t:"Архивировать",ic:IC.arch,danger:true,f:()=>{
+  // «Архивировать» не показываем для уже архивированных (отменённых) публикаций.
+  if(isEva()&&p.status!=="canceled")it.push({t:"Архивировать",ic:IC.arch,danger:true,f:()=>{
     ask("Архивировать?","«"+p.title+"» будет отменена и скрыта из плана.","Архивировать",()=>{
       setStatus(p,"canceled","Ева архивировала");renderPlan();toast("В архиве");});}});
   openPop(anchor,it);
@@ -1661,8 +1690,10 @@ function buildPubFoot(){
       B("Вернуть на правки","btn-ghost",()=>{setStatus(p,"fixes","Ева вернула на правки");closeSheet();renderPlan();toast("Возвращено на правки");});
       B("Согласовать","btn-primary",()=>{setStatus(p,"ready","Ева согласовала");closeSheet();renderPlan();toast("Согласовано");});
     }else{
-      B("Архивировать","btn-ghost",()=>ask("Архивировать?","«"+(p.title||"Без названия")+"» будет отменена.","Архивировать",
-        ()=>{setStatus(p,"canceled","Ева архивировала");closeSheet();renderPlan();toast("В архиве");}));
+      // Для уже архивированной (отменённой) публикации кнопку архивирования не показываем.
+      if(p.status!=="canceled")
+        B("Архивировать","btn-ghost",()=>ask("Архивировать?","«"+(p.title||"Без названия")+"» будет отменена.","Архивировать",
+          ()=>{setStatus(p,"canceled","Ева архивировала");closeSheet();renderPlan();toast("В архиве");}));
       B("Сохранить","btn-primary",()=>{markSaved();closeSheet();renderPlan();toast("Сохранено");});
     }
   }
@@ -1788,9 +1819,21 @@ function renderIdeas(){
   }
   L.forEach(i=>box.appendChild(ideaCard(i)));
 }
-function ideaState(i,st,msg){
-  i.state=st;renderIdeas();toast(msg);
-  API.patch("/api/ideas/"+i.id,{state:st}).catch(()=>{toast("Не удалось сохранить");reloadIdeas().then(renderIdeas);});
+async function ideaState(i,st,msg,follow){
+  const prev=i.state;
+  i.state=st;
+  // Чтобы смена статуса была видимой: переносим пользователя на вкладку
+  // нового статуса, иначе идея просто «исчезает» с текущей вкладки.
+  if(follow)ideaTab=st;
+  renderIdeas();toast(msg);
+  try{
+    const r=await API.patch("/api/ideas/"+i.id,{state:st});
+    if(r&&r.state){Object.assign(i,r);renderIdeas();}
+  }catch(e){
+    i.state=prev;
+    toast("Не удалось сохранить");
+    await reloadIdeas();renderIdeas();
+  }
 }
 
 function buildPicker(box,sel){
@@ -1893,11 +1936,11 @@ function ideaCard(i){
   const F2=el.querySelector(".ic__foot");
   const B=(t,cls,fn)=>{const b=document.createElement("button");b.className="act"+(cls?" "+cls:"");b.textContent=t;
     b.addEventListener("click",e=>{e.stopPropagation();fn();});F2.appendChild(b);return b;};
-  if(i.state==="new")B("Сохранить идею","",()=>ideaState(i,"saved","Идея сохранена"));
+  if(i.state==="new")B("Сохранить идею","",()=>ideaState(i,"saved","Идея сохранена",true));
   if(i.state==="saved"&&!isFash())B("Добавить в план","",()=>addToPlan(i));
-  if(i.state==="work")B("Использована","",()=>ideaState(i,"used","Отмечена использованной"));
-  if(i.state==="used")B("Архивировать","",()=>ideaState(i,"archived","В архиве"));
-  if(i.state==="archived")B("Вернуть","",()=>ideaState(i,"saved","Возвращена в сохранённые"));
+  if(i.state==="work")B("Использована","",()=>ideaState(i,"used","Отмечена использованной",true));
+  if(i.state==="used")B("Архивировать","",()=>ideaState(i,"archived","В архиве",true));
+  if(i.state==="archived")B("Вернуть","",()=>ideaState(i,"saved","Возвращена в сохранённые",true));
   B(isV?"Скачать видео":"Скачать фото","ghost",()=>dlIdea(i));
   const sp=document.createElement("span");sp.className="pc__sp";F2.appendChild(sp);
   const m=document.createElement("button");m.className="mini";m.innerHTML=IC.dots;
@@ -1939,7 +1982,7 @@ async function addToPlan(i){
   try{
     const res=await API.post("/api/ideas/"+i.id+"/to-plan",{date:selDate});
     if(res.publication)pubs.push(res.publication);
-    i.state="work";renderIdeas();
+    i.state="work";ideaTab="work";renderIdeas();
     toast("Идея добавлена в план на "+fmtD(selDate));
   }catch(e){toast("Не удалось добавить в план");}
 }
@@ -2267,15 +2310,44 @@ function teamSheet(){
     }catch(e){toast(e.status===409?"Такой участник уже есть":"Не удалось добавить");}
   });
 }
+// Настройки уведомлений хранятся на сервере (per-user). Ключи стабильны,
+// подписи — здесь. NOTIF_PREFS заполняется из /api/bootstrap (applyIdentity).
+function notifCatalog(){
+  return isDm()
+    ?[["digest","Дайджест новостей","Раз в неделю"],
+      ["published","Публикация вышла","Когда пост опубликован"]]
+    :[["deadline","Напоминание о дедлайне","За день до срока"],
+      ["digest","Дайджест новостей","Раз в неделю"],
+      ["approval","Согласование","Когда нужно решение"],
+      ["comments","Комментарии","Ответы в карточках"]];
+}
+async function setNotifPref(key,val){
+  const prev=NOTIF_PREFS[key];
+  NOTIF_PREFS[key]=val;
+  try{
+    const r=await API.patch("/api/notify-prefs",{[key]:val});
+    if(r&&r.prefs)NOTIF_PREFS={...NOTIF_DEFAULTS,...r.prefs};
+    return true;
+  }catch(e){
+    NOTIF_PREFS[key]=prev;
+    toast("Не удалось сохранить");
+    return false;
+  }
+}
 function notifSheet(){
-  const items=isDm()?[["Дайджест новостей","Раз в неделю",true],["Публикация вышла","Когда пост опубликован",false]]
-    :[["Напоминание о дедлайне","За день до срока",true],["Дайджест новостей","Раз в неделю",true],
-      ["Согласование","Когда нужно решение",isEva()],["Комментарии","Ответы в карточках",true]];
+  const items=notifCatalog();
   sheet2Simple("Уведомления","",
-    `<div class="rows" style="margin:0">${items.map(([t,s,on])=>`<div class="row" style="cursor:default">
-      <span class="ri">${IC.bell}</span><span class="rm"><b>${t}</b><span>${s}</span></span>
-      <button class="sw${on?" on":""}"></button></div>`).join("")}</div>`);
-  $("#sheet2Body").querySelectorAll(".sw").forEach(s=>s.addEventListener("click",()=>s.classList.toggle("on")));
+    `<div class="rows" style="margin:0">${items.map(([k,t,s])=>{
+      const val=(k in NOTIF_PREFS)?!!NOTIF_PREFS[k]:!!NOTIF_DEFAULTS[k];
+      return `<div class="row" style="cursor:default">
+      <span class="ri">${IC.bell}</span><span class="rm"><b>${esc(t)}</b><span>${esc(s)}</span></span>
+      <button class="sw${val?" on":""}" data-k="${esc(k)}"></button></div>`;}).join("")}</div>`);
+  $("#sheet2Body").querySelectorAll(".sw").forEach(sw=>sw.addEventListener("click",async()=>{
+    const key=sw.dataset.k,next=!sw.classList.contains("on");
+    sw.classList.toggle("on",next);
+    const ok=await setNotifPref(key,next);
+    if(!ok)sw.classList.toggle("on",!next); // откат при ошибке
+  }));
 }
 function archSheet(list,title){
   sheet2Simple(title,list.length+" материалов",

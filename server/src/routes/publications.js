@@ -6,6 +6,7 @@ import { config } from '../config.js';
 import { putObject } from '../services/storage.js';
 import { extractFrame } from '../services/ffmpeg.js';
 import { serializePublication } from '../serializers.js';
+import { notifyStatusChange, notifyComment } from '../services/notify.js';
 import { fmtD, dateKey } from '../util/format.js';
 import {
   canCreatePub,
@@ -187,6 +188,10 @@ export default async function publicationRoutes(app) {
     const was = ST_LABEL[pub.status];
     await prisma.publication.update({ where: { id: pub.id }, data });
     await logHistory(pub.id, req.user.id, `${req.user.name}: ${was} → ${ST_LABEL[status]}`);
+    // Уведомления о согласовании (не блокируют ответ).
+    if (status !== pub.status) {
+      notifyStatusChange(pub, req.user, status).catch(() => {});
+    }
     const fresh = await loadPub(pub.id);
     return serializePublication(fresh, req.user);
   });
@@ -199,6 +204,7 @@ export default async function publicationRoutes(app) {
     if (!text) return reply.code(400).send({ error: 'empty' });
     await prisma.publicationComment.create({ data: { publicationId: pub.id, authorId: req.user.id, text } });
     await prisma.publication.update({ where: { id: pub.id }, data: { updatedAt: new Date() } });
+    notifyComment(pub, req.user, text).catch(() => {}); // не блокируем ответ
     const fresh = await loadPub(pub.id);
     return serializePublication(fresh, req.user);
   });
